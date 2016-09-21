@@ -1,5 +1,5 @@
-function [out] = HybridOptimalControlDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options)
-% Assume running cost can be dependent on u
+function [out] = HybridOptimalControlDualSolver1(t,x,~,f,g,hX,sX,R,x0,hXT,h,H,d,options)
+% Assume running cost is independent of u, i.e. h = h(t,x), H = H(t,x)
 
 if mod(d,2) ~= 0
     warning('d is not even. Using d+1 instead.');
@@ -12,6 +12,8 @@ if ~isfield(options, 'MinimumTime'), options.MinimumTime = 0; end
 if options.MinimumTime == 1
     options.freeFinalTime = 1;
 end
+
+fprintf('Initializing...')
 
 T = 1;
 hT = t*(T-t);
@@ -38,29 +40,18 @@ yn_idx = zeros(nmodes, size(g{1},2));
 
 % Create program variables in each mode
 for i = 1 : nmodes
-    hU{ i } = 1 - u{ i }.^2;
-    
     prog = prog.withIndeterminate( x{i} );
-    prog = prog.withIndeterminate( u{i} );
     
     % create v(i)
     vmonom{ i } = monomials( [ t; x{ i } ], 0:d );
-    [ prog, v{ i }, ~ ] = prog.newFreePoly( vmonom{ i } );
-    
-    % create w(i)
-    wmonom{ i } = monomials( [ t; x{ i } ], 0:d );
-    [ prog, w{ i }, ~ ] = prog.newFreePoly( wmonom{ i } );
+    [ prog, v{ i }, vcoeff{ i } ] = prog.newFreePoly( vmonom{ i } );
     
     % create p(i,j)
-    p{ i } = msspoly( zeros( length(u{i}), 1 ) );
-    for j = 1 : length(u{i})
-        pmonom{ i, j } = monomials( [ t; x{ i } ], 0:d );
-        [ prog, p{ i }( j ), ~ ] = prog.newFreePoly( pmonom{ i, j } );
+    p{ i } = msspoly( zeros( [size( g{ i }, 2 ), 1] ) );
+    for j = 1:size( g{ i }, 2 )
+        qmonom{ i, j } = monomials( [ t; x{ i } ], 0:d );
+        [ prog, p{ i }( j ), ~ ] = prog.newFreePoly( qmonom{ i, j } );
     end
-    
-    % create q(i)
-    qmonom{ i } = monomials( [ t; x{ i } ], 0:d );
-    [ prog, q{ i }, ~ ] = prog.newFreePoly( qmonom{ i } );
     
     % create the variables that will be used later
 %     v0{ i } = subs( v{ i }, t, 0 );
@@ -69,24 +60,16 @@ for i = 1 : nmodes
     dvdx{ i } = diff( v{ i }, x{ i } );
     Lfv{ i } = dvdt{ i } + dvdx{ i } * f{ i };
     Lgv{ i } = dvdx{ i } * g{ i };
-    Lv{ i } = Lfv{ i } + Lgv{ i } * u{ i };
-    
-    dwdt{ i } = diff( w{ i }, t );
-    dwdx{ i } = diff( w{ i }, x{ i } );
-    Lfw{ i } = dwdt{ i } + dwdx{ i } * f{ i };
-    Lgw{ i } = dwdx{ i } * g{ i };
-    Lw{ i } = Lfw{ i } + Lgw{ i } * u{ i };
 end
 
 % creating the constraints and cost function
 obj = 0;
 for i = 1 : nmodes
-    % Lv + Lw + q*I_U + h_i >= 0        Dual: mu
-    prog = sosOnK( prog, Lv{ i } + Lw{ i } + q{ i } + h{ i } , ...
-                   [ t; x{ i }; u{ i } ], [ hT; hX{ i }; hU{ i } ], d );
+    % Lfv - sum_j( q(i,j) ) + h_i >= 0
+    prog = sosOnK( prog, Lfv{ i } - sum( p{ i } ) + h{i}, [ t; x{ i } ], [ hT; hX{ i } ], d );
     mu_idx(i) = size(prog.sosExpr, 1);
     
-    % v(T,x) <= H_i(x)                  Dual: muT
+    % v(T,x) <= H_i(x)
     if ~isempty( hXT{ i } )
         if options.freeFinalTime
             prog = sosOnK( prog, H{ i } - v{ i }, [ t; x{ i } ], [ hT; hXT{ i } ], d );
@@ -95,7 +78,7 @@ for i = 1 : nmodes
         end
     end
     
-    % v_i(t,x) <= v_j (t,R(x))          Dual: muS
+    % v_i(t,x) <= v_j (t,R(x))
     for j = 1 : nmodes
         if ( ~isempty( sX{ i, j } ) ) % if its empty there isn't a guard between these
             vj_helper = subs( v{ j }, x{ j }, R{ i, j } ); 
@@ -103,16 +86,13 @@ for i = 1 : nmodes
         end
     end
     
-    % Lfw + sum_j( p(i,j) ) + q <= 0    Dual: gamma
-    prog = sosOnK( prog, -Lfw{ i } - sum( p{ i } ) - q{ i }, [ t; x{ i } ], [ hT; hX{ i } ], d );
-    
-    % | Lgw(i,j) | <= p(i,j), p(i,j) >= 0
+    % | Lgv(i,j) | <= q(i,j), q(i,j) >= 0
     for j = 1 : size( g{i}, 2 )
         % sigma_P
-        prog = sosOnK( prog, p{ i }( j ) - Lgw{ i }( j ), [ t; x{ i } ], [ hT; hX{ i } ], d );
+        prog = sosOnK( prog, p{ i }( j ) + Lgv{ i }( j ), [ t; x{ i } ], [ hT; hX{ i } ], d );
         yp_idx(i,j) = size(prog.sosExpr, 1);
         % sigma_N
-        prog = sosOnK( prog, p{ i }( j ) + Lgw{ i }( j ), [ t; x{ i } ], [ hT; hX{ i } ], d );
+        prog = sosOnK( prog, p{ i }( j ) - Lgv{ i }( j ), [ t; x{ i } ], [ hT; hX{ i } ], d );
         yn_idx(i,j) = size(prog.sosExpr, 1);
         % sigma_H
         prog = sosOnK( prog, p{ i }( j ), [ t; x{ i } ], [ hT; hX{ i } ], d );
@@ -130,16 +110,20 @@ spot_options.verbose = 1;
 params.alpha = 1.5;
 params.alpha = 1.5;
 params.rho_x = 1e-3;
-params.max_iters = 1e8;
+params.max_iters = 1e4;
 params.eps = 1e-3;
 params.verbose = 0;
 params.normalize = 0;
 
 spot_options.solver_options.scs = params;
-
+fprintf('done\n');
 
 %% Solve
+fprintf('Solving...');
+tic;
 [sol, y, dual_basis, ~] = prog.minimize( -obj, @spot_mosek, spot_options );
+toc;
+fprintf('done\n');
 
 out.pval = double(sol.eval(obj));
 out.sol = sol;
@@ -168,7 +152,7 @@ for i = 1 : nmodes
     iS1 = S;
 
     startExp = 1e-10;
-    while norm(pinv(iS1)) / norm(S) > 100
+    while norm(pinv(iS1)) / norm(S) > 1e3
         iS1(iS1 < startExp) = 0;
         startExp = startExp * 10;
     end

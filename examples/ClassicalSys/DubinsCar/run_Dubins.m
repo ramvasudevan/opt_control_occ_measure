@@ -1,67 +1,47 @@
-% Dubins car: 2 modes
+% Dubins car - Minimum Time, using classical version of OCP code
 % State variables: [x, y, theta]'
 % Input: [ V, u ]'
 % System dynamics:
 % xdot = [ V*cos(1.5*theta)
 %          V*sin(1.5*theta)
-%          10 * u ]
+%          2 * u ]
 
 clear;
 scaling = 3;
-d = 8;
-nmodes = 1;
+degree = 6;
 
 % polysin = @(x) x - x^3/6;
 % polycos = @(x) 1 - x^2/2 + x^4/24;
 polysin = @(x) x;
 polycos = @(x) 1 - x^2/2;
 
-% Define variables
+% dynamics
 t = msspoly( 't', 1 );
-xa = msspoly( 'x', 3 );
-ua = msspoly( 'u', 2 );
-x = cell( nmodes, 1 );
-u = cell( nmodes, 1 );
-f = cell( nmodes, 1 );
-g = cell( nmodes, 1 );
-x0 = cell( nmodes, 1 );
-hX = cell( nmodes, 1 );
-hXT = cell( nmodes, 1 );
-sX = cell( nmodes, nmodes );
-R = cell( nmodes, nmodes );
-h = cell( nmodes, 1 );
-H = cell( nmodes, 1 );
+x = msspoly( 'x', 3 );
+u = msspoly( 'u', 2 );
+f = scaling * [ 0;
+                0;
+                0 ];
+g = scaling * [ polycos(1.5*x(3)), 0;
+                polysin(1.5*x(3)), 0;
+                0,                  2 ];
 
-x0{1} = [ -0.8; 0.8; 0 ];
-xT{1} = [ 0.5; -0.4; 0 ];
+x0 = [ -0.8; 0.8; 0 ];
+xT = [ 0.5; -0.4; 0 ];
+hX = 1 - x.^2;
+hXT = - ( x - xT ).^2;
+h = 1;
+H = 0;
 
-% Dynamics
-% Mode 1
-x{1} = xa;
-u{1} = ua;
-f{1} = scaling * [ 0;
-                   0;
-                   0 ];
-g{1} = scaling * [ polycos(1.5*xa(3)), 0;
-                   polysin(1.5*xa(3)), 0;
-                   0,                  2 ];
-% Domains
-% Mode 1
-y = xa;
-hX{1} = 1 - y.^2;
-hXT{1} = - ( y - xT{1} ).^2;
-h{1} = 1;
-H{1} = 0;
-
-% Options
+% options
 options.MinimumTime = 1;
 options.withInputs = 1;
 
 % Solve
-[out] = HybridOptimalControlDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
+[out] = OCP_Controller_Dual( t, x, u, f, g, x0, hX, hXT, h, H, degree, options );
 
 pval = scaling * out.pval;
-disp(['LMI ' int2str(d) ' lower bound = ' num2str(pval)]);
+disp(['LMI ' int2str(degree) ' lower bound = ' num2str(pval)]);
 
 %% Plot
 if ~options.withInputs
@@ -71,15 +51,15 @@ end
 figure;
 hold on;
 % trajectory from simulation
-controller = @(tt,xx) [ double(subs(out.u{1,1},[t;xa],[tt;xx])); double(subs(out.u{1,2},[t;xa],[tt;xx])) ];
-[ tval, xval ] = ode45( @(tt,xx) scaling*DubinsEq( tt, xx, controller ), [0,out.pval], x0{1} );
+controller = @(tt,xx) [ double(subs(out.u{1},[t;x],[tt;xx])); double(subs(out.u{2},[t;x],[tt;xx])) ];
+[ tval, xval ] = ode45( @(tt,xx) scaling*DubinsEq( tt, xx, controller ), [0,out.pval], x0 );
 h_traj = plot(xval(:,1), xval(:,2),'LineWidth',4);
 % optimal trajectory
 V = 1;
 omega = 3;
 r = V / omega;
-p0 = [ x0{1}(1); x0{1}(2)-r ];
-pT = [ xT{1}(1); xT{1}(2)+r ];
+p0 = [ x0(1); x0(2)-r ];
+pT = [ xT(1); xT(2)+r ];
 alpha = atan2( pT(1)-p0(1), pT(2)-p0(2) );
 theta = alpha - acos( 2*r/ norm(pT-p0) );
 xval1 = p0(1) + r * cos( pi/2:-0.01:theta );
@@ -107,8 +87,8 @@ uval = zeros( length(tval), 2 );
 for i = 1 : length(tval)
     tt = tval(i);
     xx = xval(i,1:3)';
-    uval(i,1) = double( subs(out.u{1,1}, [t;xa], [tt;xx]) );
-    uval(i,2) = double( subs(out.u{1,2}, [t;xa], [tt;xx]) );
+    uval(i,1) = double( subs(out.u{1}, [t;x], [tt;xx]) );
+    uval(i,2) = double( subs(out.u{2}, [t;x], [tt;xx]) );
 end
 tval = scaling * tval;
 subplot(1,2,1);
@@ -128,4 +108,3 @@ plot([0, theta/omega, theta/omega, tval(end)-theta/omega, tval(end)-theta/omega,
 % set(hl2,'Interpreter','latex');
 xlabel('$t$','Interpreter','LaTex','FontSize',20);
 ylabel('$\omega(t)$','Interpreter','LaTex','FontSize',20);
-

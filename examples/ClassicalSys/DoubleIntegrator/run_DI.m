@@ -1,9 +1,9 @@
-% Double integrator - Minimum Time
+% Double integrator - Minimum Time, using classical version of OCP code
 % Target set : {(0,0)}
 
 clear;
 scaling = 3;
-degree = 6;
+degree = 8;
 
 % dynamics
 t = msspoly( 't', 1 );
@@ -24,7 +24,9 @@ opts.withInputs = 1;
 
 % Solve
 [out] = OCP_Controller_Dual( t, x, u, f, g, x0, hX, hXT, h, H, degree, opts );
-disp( out.pval );
+
+pval = scaling * out.pval;
+disp(['LMI ' int2str(degree) ' lower bound = ' num2str(pval)]);
 
 %% plot
 t1 = x0(2) + sqrt(x0(1) + x0(2)^2/2);

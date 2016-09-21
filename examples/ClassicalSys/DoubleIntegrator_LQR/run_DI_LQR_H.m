@@ -1,31 +1,50 @@
-% Double Integrator - LQR problem, using classical version of my code
+% Double Integrator - LQR problem, using hybird version of OCP code
 
 clear;
 scaling = 5;
-degree = 6;
+d = 6;
+nmodes = 1;
 
-% dynamics
+% Define variables
 t = msspoly( 't', 1 );
-x = msspoly( 'x', 2 );
-u = msspoly( 'u', 1 );
-f = scaling * [ x(2); 0 ];
-g = scaling * [ 0; 1 ];
+xa = msspoly( 'x', 2 );
+ua = msspoly( 'u', 1 );
+x = cell( nmodes, 1 );
+u = cell( nmodes, 1 );
+f = cell( nmodes, 1 );
+g = cell( nmodes, 1 );
+x0 = cell( nmodes, 1 );
+hX = cell( nmodes, 1 );
+hXT = cell( nmodes, 1 );
+sX = cell( nmodes, nmodes );
+R = cell( nmodes, nmodes );
+h = cell( nmodes, 1 );
+H = cell( nmodes, 1 );
 
-x0 = [ 1; 1 ];
-hX = x(2) + 1;
-hXT = x(2) + 1;
-h = x(1)^2 + x(2)^2 + 20*u^2;
-H = 0;
+x0{1} = [ 1; 1 ];
 
-% options
-options.freeFinalTime = 0;
+% Dynamics
+x{1} = xa;
+u{1} = ua;
+f{1} = scaling * [ xa(2); 0 ];
+g{1} = scaling * [ 0; 1 ];
+
+% Domains
+y = xa;
+hX{1} = y(2) + 1;
+hXT{1} = y(2) + 1;
+h{1} = y(1)^2 + y(2)^2 + 20*ua^2;
+H{1} = 0;
+
+% Options
+options.MinimumTime = 0;
 options.withInputs = 1;
 
 % Solve
-[ out ] = OCP_Controller_Dual( t, x, u, f, g, x0, hX, hXT, h, H, degree, options );
+[out] = HybridOptimalControlDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
 
 pval = scaling * out.pval;
-disp(['LMI ' int2str(degree) ' lower bound = ' num2str(pval)]);
+disp(['LMI ' int2str(d) ' lower bound = ' num2str(pval)]);
 
 %% plot
 
@@ -34,8 +53,8 @@ figure;
 hold on;
 
 % Trajectory from simulation
-controller = @(tt,xx) double(subs(out.u{1,1},[t;x],[tt;xx]));
-[ tval, xval ] = ode45( @(tt,xx) scaling*DIEq( tt, xx, controller ), [0:0.01:1], [x0; 0] );
+controller = @(tt,xx) double(subs(out.u{1,1},[t;xa],[tt;xx]));
+[ tval, xval ] = ode45( @(tt,xx) scaling*DIEq( tt, xx, controller ), [0:0.01:1], [x0{1}; 0] );
 cost = xval(end,end);
 xval = xval(:,1:2);
 h_traj = plot(xval(:,1), xval(:,2),'LineWidth',4);
@@ -48,8 +67,8 @@ h_traj = plot(xval(:,1), xval(:,2),'LineWidth',4);
 %                        xvalA1(end,:) );
 % xvalA1 = [xvalA1; xvalA2];
 % h_traj2 = plot(xvalA1(:,1), xvalA1(:,2), 'k');
-plot(x0(1),x0(2),'Marker','o','MarkerEdgeColor',[0 0.4470 0.7410],'MarkerSize',10,'LineWidth',4);
-plot(0,0,'Marker','x','MarkerEdgeColor',[0 0.4470 0.7410],'MarkerSize',10,'LineWidth',4);
+plot(x0{1}(1),x0{1}(2),'Marker','o','MarkerEdgeColor',[0 0.4470 0.7410]);
+plot(0,0,'Marker','x','MarkerEdgeColor',[0 0.4470 0.7410]);
 % load('LQRdata');
 % plot(xval(:,1), xval(:,2),'k');
 % xlim([-1,1]);
@@ -66,7 +85,7 @@ hold on;
 
 % Simulation
 xval = xval(:,1:2);
-controller = @(tt,xx) double(subs(out.u{1},[t;x],[tt;xx]));
+controller = @(tt,xx) double(subs(out.u{1},[t;xa],[tt;xx]));
 uval = zeros( size(tval) );
 for i = 1 : length(tval)
     uval(i) = controller( tval(i), xval(i,:)' );

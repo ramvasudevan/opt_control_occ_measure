@@ -25,7 +25,8 @@ for i = 1 : length(tval)
     uval(i) = - sol(i).K * xval(i,:)';
 end
 
-% subplot(1,2,1);
+% trajectory
+figure(1);
 plot(xval(:,1), xval(:,2));
 hold on;
 plot(x0(1), x0(2), 'ro');
@@ -35,7 +36,7 @@ ylim([-1,1]);
 save('LQRdata');
 
 % control
-figure;
+figure(2);
 uval = 0 * tval;
 for i = 1 : length(tval)
     idx = ceil( tval(i) * 100 + 1e-5 );

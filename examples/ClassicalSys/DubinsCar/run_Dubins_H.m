@@ -1,14 +1,14 @@
-% Dubins car: 2 modes
+% Dubins car - Minimum Time, using hybrid version of OCP code
 % State variables: [x, y, theta]'
 % Input: [ V, u ]'
 % System dynamics:
 % xdot = [ V*cos(1.5*theta)
 %          V*sin(1.5*theta)
-%          10 * u ]
+%          2 * u ]
 
 clear;
 scaling = 3;
-d = 8;
+d = 6;
 nmodes = 1;
 
 % polysin = @(x) x - x^3/6;
@@ -49,12 +49,12 @@ g{1} = scaling * [ polycos(1.5*xa(3)), 0;
 % Mode 1
 y = xa;
 hX{1} = 1 - y.^2;
-hXT{1} = 1 - y.^2;
-h{1} = (xa(1)-xT{1}(1))^2 + (xa(2)-xT{1}(2))^2 + ua(2)^2;
+hXT{1} = - ( y - xT{1} ).^2;
+h{1} = 1;
 H{1} = 0;
 
 % Options
-options.MinimumTime = 0;
+options.MinimumTime = 1;
 options.withInputs = 1;
 
 % Solve
@@ -72,8 +72,34 @@ figure;
 hold on;
 % trajectory from simulation
 controller = @(tt,xx) [ double(subs(out.u{1,1},[t;xa],[tt;xx])); double(subs(out.u{1,2},[t;xa],[tt;xx])) ];
-[ tval, xval ] = ode45( @(tt,xx) scaling*DubinsEq( tt, xx, controller ), [0,out.pval], x0{1} );
+[ tval, xval ] = ode45( @(tt,xx) scaling*DubinsEq( tt, xx, controller ), [0:0.01:out.pval], x0{1} );
 h_traj = plot(xval(:,1), xval(:,2),'LineWidth',4);
+% optimal trajectory
+V = 1;
+omega = 3;
+r = V / omega;
+p0 = [ x0{1}(1); x0{1}(2)-r ];
+pT = [ xT{1}(1); xT{1}(2)+r ];
+alpha = atan2( pT(1)-p0(1), pT(2)-p0(2) );
+theta = alpha - acos( 2*r/ norm(pT-p0) );
+xval1 = p0(1) + r * cos( pi/2:-0.01:theta );
+yval1 = p0(2) + r * sin( pi/2:-0.01:theta );
+xval2 = pT(1) - r * cos( theta:0.01:pi/2 );
+yval2 = pT(2) - r * sin( theta:0.01:pi/2 );
+h_traj2 = plot( [xval1, xval2], [yval1, yval2], 'k' );
+% auxiliary line
+xval3 = r * cos( 0:0.01:2*pi );
+yval3 = r * sin( 0:0.01:2*pi );
+plot(xval3+p0(1), yval3+p0(2), 'k--');
+plot(xval3+pT(1), yval3+pT(2), 'k--');
+
+% legend([h_traj, h_traj2], {'Our trajectory','Optimal trajectory'});
+xlim([-1,1]);
+ylim([-1,1]);
+box on;
+xlabel('$x_1$','Interpreter','LaTex','FontSize',20);
+ylabel('$x_2$','Interpreter','LaTex','FontSize',20);
+
 
 % control action
 figure;
