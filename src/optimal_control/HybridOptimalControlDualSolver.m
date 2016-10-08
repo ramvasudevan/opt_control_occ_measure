@@ -5,7 +5,9 @@ if mod(d,2) ~= 0
     warning('d is not even. Using d+1 instead.');
     d = d+1;
 end
+svd_eps = 1e3;
 
+if isfield(options, 'svd_eps'), svd_eps = options.svd_eps; end
 if ~isfield(options, 'freeFinalTime'), options.freeFinalTime = 0; end
 if ~isfield(options, 'withInputs'), options.withInputs = 0; end
 if ~isfield(options, 'MinimumTime'), options.MinimumTime = 0; end
@@ -139,7 +141,9 @@ spot_options.solver_options.scs = params;
 
 
 %% Solve
+tic;
 [sol, y, dual_basis, ~] = prog.minimize( -obj, @spot_mosek, spot_options );
+out.time = toc;
 
 out.pval = double(sol.eval(obj));
 out.sol = sol;
@@ -168,7 +172,7 @@ for i = 1 : nmodes
     iS1 = S;
 
     startExp = 1e-10;
-    while norm(pinv(iS1)) / norm(S) > 100
+    while norm(pinv(iS1)) / norm(S) > svd_eps
         iS1(iS1 < startExp) = 0;
         startExp = startExp * 10;
     end

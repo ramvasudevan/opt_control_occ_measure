@@ -3,7 +3,7 @@
 
 clear;
 scaling = 3;
-d = 6;
+d = 8;
 nmodes = 1;
 
 % Define variables

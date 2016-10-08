@@ -49,8 +49,8 @@ for i = 1 : nmodes
     % create p(i,j)
     p{ i } = msspoly( zeros( [size( g{ i }, 2 ), 1] ) );
     for j = 1:size( g{ i }, 2 )
-        qmonom{ i, j } = monomials( [ t; x{ i } ], 0:d );
-        [ prog, p{ i }( j ), ~ ] = prog.newFreePoly( qmonom{ i, j } );
+        pmonom{ i, j } = monomials( [ t; x{ i } ], 0:d );
+        [ prog, p{ i }( j ), ~ ] = prog.newFreePoly( pmonom{ i, j } );
     end
     
     % create the variables that will be used later

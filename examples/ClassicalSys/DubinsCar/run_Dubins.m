@@ -8,7 +8,7 @@
 
 clear;
 scaling = 3;
-degree = 6;
+degree = 8;
 
 % polysin = @(x) x - x^3/6;
 % polycos = @(x) 1 - x^2/2 + x^4/24;
@@ -27,7 +27,7 @@ g = scaling * [ polycos(1.5*x(3)), 0;
                 0,                  2 ];
 
 x0 = [ -0.8; 0.8; 0 ];
-xT = [ 0.5; -0.4; 0 ];
+xT = [ 0.5; -0.2; 0 ];
 hX = 1 - x.^2;
 hXT = - ( x - xT ).^2;
 h = 1;

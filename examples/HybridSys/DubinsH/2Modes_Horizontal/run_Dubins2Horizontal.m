@@ -1,10 +1,10 @@
-% Dubins car: 2 modes
+% Dubins car: 2 modes, horizontal
 % State variables: [x, y, theta]'
 % Input: [ V, u ]'
 % System dynamics:
 % xdot = [ V*cos(1.5*theta)
 %          V*sin(1.5*theta)
-%          10 * u ]
+%          2 * u ]
 
 clear;
 scaling = 3;
@@ -50,38 +50,33 @@ g{2} = g{1};
 
 % Domains
 % Mode 1
-y = xa;
-hX{1} = [ -y(1)*(y(1)+1);
-          1 - y(2)^2;
-          1 - y(3)^2 ];
-sX{1,2} = [ y(1);
-            -y(1);
-            1 - y(2)^2;
+y = x{1};
+hX{1} = [ 1 - y(1).^2;
+          y(2) * (1-y(2));
+          1 - y(3).^2 ];
+sX{1,2} = [ 1 - y(1)^2;
+            - y(2)^2;
             1 - y(3)^2 ];
 R{1,2} = x{2};
 h{1} = 1;
-H{1} = 0;
 % Mode 2
-hX{2} = [ y(1) * (1-y(1));
-          1 - y(2)^2;
-          1 - y(3)^2 ];
-hXT{2} = [ y(1) - 0.5;
-           -y(1) + 0.5;
-           y(2) + 0.2;
-           -y(2) - 0.2;
-%            -y(3)^2 ];
+y = x{2};
+hX{2} = [ 1 - y(1).^2;
+          -y(2) * (y(2)+1);
+          1 - y(3).^2 ];
+hXT{2} = [ - (y(1) - 0.8)^2;
+           - (y(2) + 0.8)^2;
            1 - y(3)^2 ];
-sX{2,1} = sX{1,2};
-R{2,1} = x{1};
 h{2} = 1;
 H{2} = 0;
 
 % Options
 options.MinimumTime = 1;
 options.withInputs = 1;
+options.svd_eps = 1e4;
 
 % Solve
-[out] = HybridOptimalControlDualSolver1(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
+[out] = HybridOptimalControlDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
 
 pval = scaling * out.pval;
 disp(['LMI ' int2str(d) ' lower bound = ' num2str(pval)]);
@@ -94,7 +89,7 @@ end
 % trajectory
 J = @(x) 1;
 ode_options = odeset('Events',@EventFcn);
-[tval,xval] = ode45( @(tt,xx) scaling*Dubins_2MEq( tt, xx, out.u, J, [t;xa] ), ...
+[tval,xval] = ode45( @(tt,xx) scaling*Dubins_2MEq_Horizontal( tt, xx, out.u, J, [t;xa] ), ...
                      [0,1], [x0{1};0], ode_options );
 plot(xval(:,1), xval(:,2));
 hold on;
@@ -106,7 +101,7 @@ uval = zeros( length(tval), 2 );
 for i = 1 : length(tval)
     tt = tval(i);
     xx = xval(i,1:3)';
-    if xx(1) <= 0
+    if xx(2) >= 0
         uval(i,1) = double( subs(out.u{1,1}, [t;xa], [tt;xx]) );
         uval(i,2) = double( subs(out.u{1,2}, [t;xa], [tt;xx]) );
     else

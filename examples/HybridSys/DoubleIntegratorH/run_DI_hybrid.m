@@ -2,7 +2,7 @@
 
 clear;
 scaling = 5;
-d = 8;
+d = 12;
 nmodes = 2;
 r2 = 0.3;
 
@@ -38,9 +38,9 @@ g{2} = g{1};
 y = x{1};
 hX{1} = r2 - y'*y;
 hXT{1} = 0-y.^2;
-sX{1,2} = [ r2 - y' * y;
-            y' * y - r2 ];
-R{1,2} = x{2};
+% sX{1,2} = [ r2 - y' * y;
+%             y' * y - r2 ];
+% R{1,2} = x{2};
 h{1} = 1;
 H{1} = 0;
 
@@ -56,10 +56,11 @@ h{2} = 1;
 % Options
 options.MinimumTime = 1;
 options.withInputs = 1;
+options.svd_eps = 1e4;
 
 % Solve
-% [out] = HybridOptimalControlDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
-[out] = HybridOptimalControlDualSolver1(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
+[out] = HybridOptimalControlDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
+% [out] = HybridOptimalControlDualSolver1(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
 
 pval = scaling * out.pval;
 
@@ -81,6 +82,7 @@ disp(['LMI ' int2str(d) ' lower bound = ' num2str(pval)]);
 % trajectory
 figure;
 hold on;
+box on;
 
 circx = -sqrt(r2):0.001:sqrt(r2);
 circy = sqrt( r2 - circx .^ 2 );
@@ -103,8 +105,14 @@ h_traj2 = plot(xvalA1(:,1), xvalA1(:,2), 'k--');
 % plot([-1,1.5],[-1,-1],'k');
 plot(x0{2}(1),x0{2}(2),'Marker','o','MarkerEdgeColor',[0 0.4470 0.7410]);
 plot(0,0,'Marker','x','MarkerEdgeColor',[0 0.4470 0.7410]);
-axis equal;
-axis([-1,1,-1,1]);
+xlim([-1,1]);
+ylim([-1,1]);
+set(gca,'XTick',[-1,1]);
+set(gca,'YTick',[-1,1]);
+set(gca, 'FontSize', 20);
+xlabel('$x_1$','Interpreter','LaTex','FontSize',30);
+ylabel('$x_2$','Interpreter','LaTex','FontSize',30);
+box on;
 legend([h_area(2) h_area2(2) h_traj h_traj2], {'Mode 1', 'Mode 2', 'Trajectory under extracted control law', 'Optimal trajectory'});
 
 [~,idx] = find( id_event == 2 );

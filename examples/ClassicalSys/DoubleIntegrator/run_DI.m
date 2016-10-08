@@ -3,7 +3,7 @@
 
 clear;
 scaling = 3;
-degree = 8;
+degree = 6;
 
 % dynamics
 t = msspoly( 't', 1 );

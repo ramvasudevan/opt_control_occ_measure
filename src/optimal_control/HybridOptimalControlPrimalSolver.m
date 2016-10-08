@@ -1,4 +1,4 @@
-function [out] = HybridOptimalControl_withInputs(t,x,u,f,g,hX,guard,R,x0,target,objective,d,options)
+function [out] = HybridOptimalControlPrimalSolver(t,x,u,f,g,hX,guard,R,x0,target,objective,d,options)
 
 mset('yalmip',true); % if true Gloptipoly calls the SDP solver through Yalmip
 warning('off','YALMIP:strict')
