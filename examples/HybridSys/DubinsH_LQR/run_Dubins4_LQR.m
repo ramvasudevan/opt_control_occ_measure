@@ -12,7 +12,7 @@
 
 clear;
 scaling = 3;
-d = 6;
+d = 8;
 nmodes = 4;
 
 polysin = @(x) x;
@@ -35,6 +35,7 @@ h = cell( nmodes, 1 );
 H = cell( nmodes, 1 );
 
 x0{1} = [ -0.8; 0.8; 0 ];
+xT = [ 0.5; -0.2; 0 ];
 
 % Dynamics
 % Mode 1
@@ -63,21 +64,29 @@ f{4} = f{1};
 g{4} = g{1};
 
 % Domains
-% Mode 1
+% Space
 y = xa;
 hX{1} = [ -y(1)*(y(1)+1);
           y(2) * (1-y(2));
           1 - y(3)^2 ];
+hXT{1} = hX{1};
+
 hX{2} = [ y(1) * (1-y(1));
           y(2) * (1-y(2));
           1 - y(3)^2 ];
+hXT{2} = hX{2};
+
 hX{3} = [ -y(1)*(y(1)+1);
           -y(2)*(y(2)+1);
           1 - y(3)^2 ];
+hXT{3} = hX{3};
+
 hX{4} = [ y(1) * (1-y(1));
           -y(2)*(y(2)+1);
           1 - y(3)^2 ];
+hXT{4} = hX{4};
 
+% Guards
 sX{1,2} = [ y(1);
             -y(1);
             y(2) * (1-y(2));
@@ -107,29 +116,22 @@ sX{3,4} = [ y(1);
 R{3,4} = x{4};
 R{4,3} = x{3};
 
-h{1} = 1;
-h{2} = 1;
-h{3} = 1;
-h{4} = 1;
+h{1} = (y(1) - xT(1))^2 + (y(2) - xT(2))^2 + ua(1)^2 + ua(2)^2;
+h{2} = (y(1) - xT(1))^2 + (y(2) - xT(2))^2 + ua(1)^2 + ua(2)^2;
+h{3} = (y(1) - xT(1))^2 + (y(2) - xT(2))^2 + ua(1)^2 + ua(2)^2;
+h{4} = (y(1) - xT(1))^2 + (y(2) - xT(2))^2 + ua(1)^2 + ua(2)^2;
 H{1} = 0;
 H{2} = 0;
 H{3} = 0;
 H{4} = 0;
 
-hXT{4} = [ y(1) - 0.5;
-           -y(1) + 0.5;
-           y(2) + 0.2;
-           -y(2) - 0.2;
-           0 - y(3)^2 ];
-
 % Options
-options.MinimumTime = 1;
+options.MinimumTime = 0;
 options.withInputs = 1;
 options.svd_eps = 1e5;
 
 % Solve
-[out] = HybridOptimalControlDualSolver1(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
-% [out] = HybridOptimalControlDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
+[out] = HybridOptimalControlDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
 
 
 pval = scaling * out.pval;
@@ -140,8 +142,9 @@ disp(['LMI ' int2str(d) ' lower bound = ' num2str(pval)]);
 figure;
 if options.withInputs
     J = @(x) 1;
+    ode_options = odeset('Events',@EventFcn);
     [tval,xval] = ode45( @(tt,xx) scaling*Dubins_4MEq( tt, xx, out.u, J, [t;xa] ), ...
-                         [0,out.pval], [x0{1};0] );
+                         [0,out.pval], [x0{1};0], ode_options );
     plot(xval(:,1), xval(:,2));
 %     axis equal
     xlim([-1,1]);

@@ -5,10 +5,13 @@
 % xdot = [ V*cos(1.5*theta)
 %          V*sin(1.5*theta)
 %          2 * u ]
+%   |
+% 1 | 2
+%   |
 
 clear;
 scaling = 3;
-d = 6;
+d = 8;
 nmodes = 2;
 
 polysin = @(x) x;
@@ -79,9 +82,11 @@ H{2} = 0;
 % Options
 options.MinimumTime = 1;
 options.withInputs = 1;
+options.svd_eps = 1e5;
 
 % Solve
-[out] = HybridOptimalControlDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
+[out] = HybridOptimalControlDualSolver1(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
+% [out] = HybridOptimalControlDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
 
 pval = scaling * out.pval;
 disp(['LMI ' int2str(d) ' lower bound = ' num2str(pval)]);
@@ -93,9 +98,9 @@ end
 
 % trajectory
 J = @(x) 1;
-ode_options = odeset('Events',@EventFcn);
+% ode_options = odeset('Events',@EventFcn);
 [tval,xval] = ode45( @(tt,xx) scaling*Dubins_2MEq( tt, xx, out.u, J, [t;xa] ), ...
-                     [0,1], [x0{1};0], ode_options );
+                     [0,out.pval], [x0{1};0] );
 plot(xval(:,1), xval(:,2));
 hold on;
 plot(-0.8,0.8,'ro');

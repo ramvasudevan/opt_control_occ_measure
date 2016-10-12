@@ -1,10 +1,10 @@
-% Shortcut problem: 3 modes
+% Shortcut problem: 3 modes, 1 input
 % Mode 1: Dubins car
 % System dynamics:
 % xdot = [ V*cos(1.5*theta)
 %          V*sin(1.5*theta)
 %          2 * u ]
-% Mode 2: Dubins car, same as mode 1.
+% Mode 2: Dubins car, theta linearized around pi (instead of 0)
 % 
 % Mode 3: Shortcut
 % System dynamics:
@@ -15,13 +15,14 @@ clear;
 scaling = 3;
 d = 6;
 nmodes = 3;
+V = 1;
 
 polysin = @(x) x;
 polycos = @(x) 1 - x^2/2;
 
 % Define variables
 t = msspoly( 't', 1 );
-ua = msspoly( 'u', 2 );
+ua = msspoly( 'u', 1 );
 x = cell( nmodes, 1 );
 u = cell( nmodes, 1 );
 f = cell( nmodes, 1 );
@@ -37,27 +38,31 @@ H = cell( nmodes, 1 );
 x0{1} = [ -0.8; 0.8; 0 ];
 
 % Dynamics
-% Mode 1
+% Mode 1 (x,y,theta)
 x{1} = msspoly( 'xa', 3 );
 u{1} = ua;
 y = x{1};
-f{1} = scaling * [ 0;
-                   0;
+f{1} = scaling * [ V * polycos(1.5*y(3));
+                   V * polysin(1.5*y(3));
                    0 ];
-g{1} = scaling * [ polycos(1.5*y(3)), 0;
-                   polysin(1.5*y(3)), 0;
-                   0,                  2 ];
-% Mode 2
+g{1} = scaling * [ 0;
+                   0;
+                   2 ];
+% Mode 2 (x,y,pi+theta)
 x{2} = x{1};
 u{2} = u{1};
-f{2} = f{1};
-g{2} = g{1};
+f{2} = scaling * [ -V * polycos(1.5*y(3));
+                   -V * polysin(1.5*y(3));
+                   0 ];
+g{2} = scaling * [ 0;
+                   0;
+                   2 ];
                
 % Mode 3
 x{3} = msspoly( 'xb', 1 );
 u{3} = ua;
 f{3} = scaling * 0;
-g{3} = scaling * [ 10, 0 ];
+g{3} = scaling * [ 10 ];
 
 % Domains
 % Mode 1
@@ -69,10 +74,10 @@ sX{1,3} = [ 1 - y(1)^2;
             -(y(2) - 1)^2;
             1 - y(3)^2 ];
 R{1,3} = -1;
-sX{1,2} = [ 1 - y(1)^2;
-            - y(2)^2;
-            1 - y(3)^2 ];
-R{1,2} = x{2};
+% sX{1,2} = [ 1 - y(1)^2;
+%             - y(2)^2;
+%             1 - y(3)^2 ];
+% R{1,2} = x{2};
 h{1} = 1;
 
 % Mode 2
@@ -90,12 +95,13 @@ H{2} = 0;
 y = x{3};
 hX{3} = 1 - y.^2;
 sX{3,2} = - (y-1)^2;
-R{3,2} = [ 0.8; -1; sqrt(2)/1.5 ];
+R{3,2} = [ 1; -0.8; 0 ];
 h{3} = 1;
 
 % options
 options.MinimumTime = 1;
 options.withInputs = 1;
+options.svd_eps = 1e5;
 
 % Solve
 [out] = HybridOptimalControlDualSolver1(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
@@ -111,9 +117,9 @@ end
 figure;
 hold on;
 % trajectory from simulation
-controller = @(tt,xx) [ double(subs(out.u{1,1},[t;x{1}],[tt;xx])); double(subs(out.u{1,2},[t;x{1}],[tt;xx])) ];
+controller = @(tt,xx) [ 1; double(subs(out.u{1,1},[t;x{1}],[tt;xx])) ];
 ode_options = odeset('Events',@EventFcn);
-[ tval, xval ] = ode45( @(tt,xx) scaling*DubinsEq( tt, xx, controller, @(tmp) 1 ), [0:0.01:1], [x0{1};0], ode_options );
+[ tval, xval ] = ode45( @(tt,xx) scaling*DubinsEq( tt, xx, controller ), [0:0.01:1], x0{1}, ode_options );
 h_traj = plot(xval(:,1), xval(:,2),'LineWidth',4);
 
 % control action
@@ -123,12 +129,12 @@ uval = zeros( length(tval), 2 );
 for i = 1 : length(tval)
     tt = tval(i);
     xx = xval(i,1:3)';
-    uval(i,1) = min(1, double( subs(out.u{1,1}, [t;x{1}], [tt;xx]) ));
-    uval(i,2) = min(1, double( subs(out.u{1,2}, [t;x{1}], [tt;xx]) ));
+    uval(i,1) = double( subs(out.u{1,1}, [t;x{1}], [tt;xx]) );
+%     uval(i,2) = double( subs(out.u{1,2}, [t;x{1}], [tt;xx]) );
 end
-subplot(1,2,1);
+% subplot(1,2,1);
 plot(tval,uval(:,1));
-subplot(1,2,2);
-plot(tval,uval(:,2));
+% subplot(1,2,2);
+% plot(tval,uval(:,2));
 % [ tval2, xval2 ] = ode45( @(tt,xx) scaling*DubinsEq( tt, xx, controller ), [tval(end)+0.2/scaling:0.01:pval/scaling], [0.8;-1;sqrt(2)/1.5] );
 % plot(xval(:,1),xval(:,2), 'LineWidth',4);
