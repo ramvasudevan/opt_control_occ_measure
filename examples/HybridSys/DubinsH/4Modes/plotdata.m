@@ -36,6 +36,10 @@ for i = 1 : length(tval)
         uval(i,2) = double( subs(out.u{4,2}, [t;xa], [tt;xx]) );
     end
 end
+
+uval( uval > 1) = 1;
+uval( uval < -1 ) = -1;
+
 subplot(1,2,1);
 plot(tval*scaling,uval(:,1),'LineWidth',mythick,'color',mycolor);
 subplot(1,2,2);

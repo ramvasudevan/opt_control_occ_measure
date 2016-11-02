@@ -19,8 +19,12 @@ hold on;
 figure(1);
 circx = -sqrt(r2):0.001:sqrt(r2);
 circy = sqrt( r2 - circx .^ 2 );
-h_area2 = area([-2;3],[-2,4;-2,4],'ShowBaseLine','off','FaceColor',[0.6 1 0.6]);
-h_area = area(circx', [-circy; 2*circy]', 'BaseValue',0, 'ShowBaseLine','off','FaceColor',[1 0.6 0.6]);
+% h_area2 = area([-2;3],[-2,4;-2,4],'ShowBaseLine','off','FaceColor',[0.6 1 0.6]);
+% h_area = area(circx', [-circy; 2*circy]', 'BaseValue',0, 'ShowBaseLine','off','FaceColor',[1 0.6 0.6]);
+
+h_area2 = area([-2;3],[-2,4;-2,4],'ShowBaseLine','off','FaceColor',[1 1 1]);
+h_area = area(circx', [-circy; 2*circy]', 'BaseValue',0, 'ShowBaseLine','off','FaceColor',[1 1 1]);
+
 
 % optimal trajectory
 figure(1);

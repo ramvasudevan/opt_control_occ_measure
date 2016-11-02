@@ -12,7 +12,7 @@
 
 clear;
 scaling = 3;
-d = 8;
+d = 6;
 nmodes = 4;
 
 polysin = @(x) x;

@@ -18,6 +18,11 @@ else
     uval2 = double( subs(u{4,2}, var, [t;xval]) );
 end
 
+uval1( uval1 > 1 ) = 1;
+uval1( uval1 < -1 ) = -1;
+uval2( uval2 > 1 ) = 1;
+uval2( uval2 < -1 ) = -1;
+
 xdot = [ uval1 * polycos(1.5*xval(3));
          uval1 * polysin(1.5*xval(3));
          2 * uval2;

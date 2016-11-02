@@ -32,7 +32,7 @@ figure(1);
 % t_total = 2*theta/omega + sqrt( norm(pT-p0)^2 - 4*r^2 ) / V;
 % plot( [xval1, xval2], [yval1, yval2], 'LineWidth', 4 );
 plot(x0(1),x0(2),'Marker','o','MarkerEdgeColor',[0 0.4470 0.7410],'MarkerSize',10,'LineWidth',4);
-plot(xT(1),xT(2),'Marker','x','MarkerEdgeColor',[0 0.4470 0.7410],'MarkerSize',10,'LineWidth',4);
+plot(xT(1),xT(2),'Marker','.','MarkerEdgeColor',[0 0.4470 0.7410],'MarkerSize',10,'LineWidth',4);
 % % auxiliary line
 % xval3 = r * cos( 0:0.01:2*pi );
 % yval3 = r * sin( 0:0.01:2*pi );
@@ -73,9 +73,9 @@ set(gca, 'FontSize', 20);
 box on;
 
 %% Plot our result
-tc1 = plotdata('d10_1e5_v2w2',scaling,  3,  [.702,0,0]);
-tc2 = plotdata('d8_1e5_v2w2',scaling,   2,  [.890,.290,.2]);
-tc3 = plotdata('d6_1e5_v2w2',scaling,   1,  [.988,.553,.349]);
+tc1 = plotdata('d10_1e5_v2w2',scaling,  6,  [.702,0,0]);
+tc2 = plotdata('d8_1e5_v2w2',scaling,   4,  [.890,.290,.2]);
+tc3 = plotdata('d6_1e5_v2w2',scaling,   2,  [.988,.553,.349]);
 
 tcross = 1/3*( tc1 + tc2 + tc3 ) * scaling;
 

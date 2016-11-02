@@ -1,10 +1,25 @@
 function [out] = HybridOptimalControlDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options)
 % Assume running cost can be dependent on u
 
+% Sanity check
 if mod(d,2) ~= 0
     warning('d is not even. Using d+1 instead.');
     d = d+1;
 end
+nmodes = length(x);
+m = length(u{1});
+for i = 1 : nmodes
+    if length(u{i}) ~= m
+        error('Inconsistent matrix size.');
+    end
+    if (length(f{i}) ~= length(x{i})) || (size(g{i},1) ~= length(x{i}))
+        error('Inconsistent matrix size.');
+    end
+    if size(g{i},2) ~= m
+        error('Inconsistent matrix size.');
+    end
+end
+
 svd_eps = 1e3;
 
 if isfield(options, 'svd_eps'), svd_eps = options.svd_eps; end
@@ -17,8 +32,6 @@ end
 
 T = 1;
 hT = t*(T-t);
-
-nmodes = length(x);
 
 if isempty(R)
     R = cell(nmodes,nmodes);

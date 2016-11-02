@@ -30,14 +30,14 @@ yval1 = p0(2) + r * sin( pi/2:-0.01:theta );
 xval2 = pT(1) - r * cos( theta:0.01:pi/2 );
 yval2 = pT(2) - r * sin( theta:0.01:pi/2 );
 t_total = 2*theta/omega + sqrt( norm(pT-p0)^2 - 4*r^2 ) / V;
-plot( [xval1, xval2], [yval1, yval2], 'LineWidth', 4 );
+plot( [xval1, xval2], [yval1, yval2], 'LineWidth', 6 );
 plot(x0(1),x0(2),'Marker','o','MarkerEdgeColor',[0 0.4470 0.7410],'MarkerSize',10,'LineWidth',4);
 plot(xT(1),xT(2),'Marker','x','MarkerEdgeColor',[0 0.4470 0.7410],'MarkerSize',10,'LineWidth',4);
 % auxiliary line
 xval3 = r * cos( 0:0.01:2*pi );
 yval3 = r * sin( 0:0.01:2*pi );
-plot(xval3+p0(1), yval3+p0(2), 'k--');
-plot(xval3+pT(1), yval3+pT(2), 'k--');
+% plot(xval3+p0(1), yval3+p0(2), 'k--');
+% plot(xval3+pT(1), yval3+pT(2), 'k--');
 
 xlim([-1,1]);
 ylim([-1,1]);
@@ -51,7 +51,7 @@ box on;
 % Optimal control
 figure(2);
 subplot(1,2,1);
-plot([0,t_total],[1,1],'LineWidth',4);
+plot([0,t_total],[1,1],'LineWidth',6);
 xlabel('$t$','Interpreter','LaTex','FontSize',30);
 ylabel('$v(t)$','Interpreter','LaTex','FontSize',30);
 xlim([0,2]);
@@ -73,18 +73,20 @@ set(gca, 'FontSize', 20);
 box on;
 
 %% Plot our result
-tc1 = plotdata('d12_1e5_angle',scaling,  3,  [.702,0,0]);
-tc2 = plotdata('d8_1e5_angle',scaling,   2,  [.890,.290,.2]);
-tc3 = plotdata('d6_1e5_angle',scaling,   1,  [.988,.553,.349]);
+tc1 = plotdata('d12_1e5_angle',scaling,  4,  [.702,0,0]);
+tc2 = plotdata('d8_1e5_angle',scaling,   3,  [.890,.290,.2]);
+tc3 = plotdata('d6_1e5_angle',scaling,   3,  [.988,.553,.349]);
 
-tcross = 1/3*( tc1 + tc2 + tc3 ) * scaling;
+% tcross = 1/3*( tc1 + tc2 + tc3 ) * scaling;
+tcross = [1.0194,1.2427];
 
 % Modes
 figure(1);
 plot([0,0],[-1,1],'k');
 plot([-1,1],[0,0],'k');
-text(-0.2,0.8,'I','FontSize',15);
-text(0.5,0.8,'II','FontSize',15);
+% text(-0.2,0.8,'I','FontSize',15);
+text(-0.5,0.5,'I','FontSize',15);
+text(0.5,0.5,'II','FontSize',15);
 text(-0.5,-0.5,'III','FontSize',15);
 text(0.5,-0.5,'IV','FontSize',15);
 

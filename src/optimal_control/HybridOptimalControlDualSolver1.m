@@ -156,7 +156,7 @@ for i = 1 : nmodes
     startExp = 1e-10;
     while norm(pinv(iS1)) / norm(S) > svd_eps
         iS1(iS1 < startExp) = 0;
-        startExp = startExp * 10;
+        startExp = startExp * 5;
     end
 
     disp(sprintf('norm of moment matrix %0.2f', norm(S)))

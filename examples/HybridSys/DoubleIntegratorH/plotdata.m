@@ -26,4 +26,8 @@ for i = 1 : length(tval)
         uval(i) = double(subs(controller(2), [t;x{1}], [tval(i);xval(i,1:2)']));
     end
 end
+
+uval(uval > 1) = 1;
+uval(uval < -1) = -1;
+
 plot(tval*scaling, uval,'LineWidth',mythick,'color',mycolor);
