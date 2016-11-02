@@ -1,0 +1,11 @@
+function [value, isterminal, direction] = EvtFunc_F2S_Approx( ~, x )
+% polycos = @(x) 1 - x^2/2;
+polycos = @(x) cos(x);
+params = SLIPParams;
+yR = params.l0 * polycos(params.alpha);
+value(1) = x(3) - yR;
+value(2) = x(3) - yR;
+isterminal(1) = 0;
+isterminal(2) = 1;
+direction(1) = 1;
+direction(2) = -1;

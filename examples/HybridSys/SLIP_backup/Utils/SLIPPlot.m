@@ -1,9 +1,9 @@
 classdef SLIPPlot < handle
     
     properties (SetAccess = public)
-        mass_hist;
+        state_hist;
         time_hist;
-        current_q;      % [ x, y, l, theta ], (x,y) is the position of mass
+        current_q;      % [ x, y, l, theta ]
         phase;
         Mpos;
         Opos;
@@ -15,9 +15,7 @@ classdef SLIPPlot < handle
         h_M;
         h_O;
         h_link;
-        h_link2;
-        h_gnd;
-        h_traj;
+        h_gnd
     end
     
     methods
@@ -29,7 +27,7 @@ classdef SLIPPlot < handle
                 case 1  % Stance
                     ll = x0(1);
                     tt = x0(3);
-                    P.current_q(1) = x0(5);
+                    P.current_q(1) = x0(5) - ll * sin(tt);
                     P.current_q(2) = ll * cos(tt);
                     P.current_q(3) = ll;
                     P.current_q(4) = tt;
@@ -43,7 +41,7 @@ classdef SLIPPlot < handle
             end
             
             figure;
-            xlim([-1,12]);
+            xlim([-1,10]);
             ylim([-0.5,3]);
             P.h_2d = gca;
             hold( P.h_2d, 'on' );
@@ -52,19 +50,12 @@ classdef SLIPPlot < handle
                          P.Mpos(1), P.Mpos(2), 'ro', 'MarkerSize', 10);
 %             P.h_O = plot(P.h_2d, ...
 %                          P.Opos(1), P.Opos(2), 'ro', 'MarkerSize', 10);
-            P.h_traj = plot(P.h_2d, [P.Mpos(1)], [P.Mpos(2)], '-r' );
-            P.h_link2 = plot( P.h_2d, ...
-                              [P.Mpos(1), P.Mpos(1)+params.l0 * sin(params.alpha)], ...
-                              [P.Mpos(2), P.Mpos(2)-params.l0 * cos(params.alpha)], ...
-                              'Color', [0.4,0.4,0.4], 'LineWidth', 4 );
             P.h_link = plot(P.h_2d, ...
                             [P.Mpos(1), P.Opos(1)], ...
                             [P.Mpos(2), P.Opos(2)], ...
                             '-b', 'LineWidth', 4 );
-            
             P.h_gnd = plot(P.h_2d, ...
-                           [-1, 13], [0,0], '-k', 'LineWidth', 2);
-            
+                           [-1, 11], [0,0], '-k', 'LineWidth', 2);
             hold( P.h_2d, 'off' );
             title( P.h_2d, 0 );
         end
@@ -74,7 +65,7 @@ classdef SLIPPlot < handle
                 case 1  % Stance
                     ll = xval(1);
                     tt = xval(3);
-                    P.current_q(1) = xval(5);
+                    P.current_q(1) = xval(5) - ll * sin(tt);
                     P.current_q(2) = ll * cos(tt);
                     P.current_q(3) = ll;
                     P.current_q(4) = tt;
@@ -93,15 +84,9 @@ classdef SLIPPlot < handle
             set( P.h_O, ...
                  'XData', P.Opos(1), ...
                  'YData', P.Opos(2) );
-            set( P.h_link, ...
-                 'XData', [P.Mpos(1), P.Mpos(1)+P.params.l0 * sin(P.params.alpha)], ...
-                 'YData', [P.Mpos(2), P.Mpos(2)-P.params.l0 * cos(P.params.alpha)] );
-            set( P.h_link2, ...
-                 'XData', [P.Mpos(1), P.Opos(1)], ...
-                 'YData', [P.Mpos(2), P.Opos(2)] );
-            set( P.h_traj, ...
-                 'XData', P.mass_hist(:,1), ...
-                 'YData', P.mass_hist(:,2) );
+            set ( P.h_link, ...
+                  'XData', [P.Mpos(1), P.Opos(1)], ...
+                  'YData', [P.Mpos(2), P.Opos(2)] );
             title( P.h_2d, tval );
             
             drawnow;
@@ -112,7 +97,6 @@ classdef SLIPPlot < handle
             tt = P.current_q(4);
             P.Mpos = P.current_q(1:2);
             P.Opos = P.Mpos + [ll*sin(tt), -ll*cos(tt)];
-            P.mass_hist = [P.mass_hist; P.Mpos(1:2)];
         end
         
         function Visualize( P, t_hist, x_hist, phase )
@@ -124,6 +108,7 @@ classdef SLIPPlot < handle
                 P.UpdatePlot( tval, xval );
                 tstep = 1 * (t_hist(i) - t_hist(i-1));
                 t = toc;
+                tstep = tstep * 0.1;
                 if (t < tstep)
                     pause(tstep - t);
                 end
