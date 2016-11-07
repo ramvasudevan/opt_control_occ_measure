@@ -1,15 +1,16 @@
-% SLIP model, 3 modes, superceded version
-% Horizontal partation of flight phase (not as good)
-% 
+% SLIP model, 3 modes, vertical partation of flight phase
+% Goal: jump as high as possible, at a given terminal time
+% *WITH* horizontal displacement as one of the states.
 
 clear;
 
 addpath('Utils');
 addpath('PolyDynamics');
 addpath('TrueDynamics');
+addpath('Plot');
 
 d = 6;
-scaling = 5;
+scaling = 3;
 nmodes = 3;
 
 % Define variables
@@ -59,69 +60,67 @@ hX1 = @(xx) [ domain_size{1}(:,2) - xx;
              xx - domain_size{1}(:,1) ];
 G12 = @(xx) [ -(1 - xx(1))^2;         % l = l0
              xx(2);                  % l_dot > 0
-             -xx(3) - params.alpha;  % below ground
              domain_size{1}(3:5,2) - xx(3:5);
              xx(3:5) - domain_size{1}(3:5,1) ];
-G13 = @(xx) [ -(1 - xx(1))^2;         % l = l0
-             xx(2);                  % l_dot > 0
-             xx(3) + alpha;  % above ground
-             domain_size{1}(3:5,2) - xx(3:5);
-             xx(3:5) - domain_size{1}(3:5,1) ];
-% R12 and R13 are the same, which are just reset_S2F_Approx
+% Only R12 is needed, because R13 is impossible
 hX{1} = rescale_dynamics(hX1, x{1}, scale_x{1}, trans_x{1});
 sX{1,2} = rescale_guard(G12, x{1}, scale_x{1}, trans_x{1});
-sX{1,3} = rescale_guard(G13, x{1}, scale_x{1}, trans_x{1});
-R{1,2} = rescale_reset(@Reset_S2F_Approx, x{1}, scale_x{1}, trans_x{1}, scale_x{2}, trans_x{2});
-R{1,3} = rescale_reset(@Reset_S2F_Approx, x{1}, scale_x{1}, trans_x{1}, scale_x{3}, trans_x{3});
-h{1} = 1;
-H{1} = 0;
+% Attention: we should taylor expand the reset map around 0 instead of -pi/6
+R{1,2} = rescale_reset(@Reset_S2F_Approx0, x{1}, scale_x{1}, trans_x{1}, scale_x{2}, trans_x{2});
+% Make sure the reset maps to a point in the domain
+sX{1,2} = [ sX{1,2};
+            1 - R{1,2};
+            1 + R{1,2} ];
+h{1} = 0;
+TarPt1 = @(xx) -xx(1) * ( 1 - xx(3)^2 );	% -l*cos(theta)
+H{1} = rescale_guard(TarPt1, x{1}, scale_x{1}, trans_x{1});
 
 % Mode 2 : Flight 1
 hX2 = @(xx) [ domain_size{2}(:,2) - xx;
-             xx - domain_size{2}(:,1) ];
-G23 = @(xx) [ domain_size{2}(1:2,2) - xx(1:2);
-             xx(1:2) - domain_size{2}(1:2,1);
-             - (xx(3) - yR)^2;
-             domain_size{2}(4,2) - xx(4);
-             xx(4) - domain_size{2}(4,1) ];
-R23 = @(x) x;
+              xx - domain_size{2}(:,1) ];
+G23 = @(xx) [ domain_size{2}(1:2,2) - xx(1:2);      % Don't be naive! R23 isn't identity!!
+              xx(1:2) - domain_size{2}(1:2,1);
+              - xx(4)^2 ];        % y_dot = 0
+R23 = @(xx) xx;
 hX{2} = rescale_dynamics(hX2, x{2}, scale_x{2}, trans_x{2});
 sX{2,3} = rescale_guard(G23, x{2}, scale_x{2}, trans_x{2});
 R{2,3} = rescale_reset(R23, x{2}, scale_x{2}, trans_x{2}, scale_x{3}, trans_x{3});
-h{2} = 1;
-H{2} = 0;
+% Make sure the reset maps to a point in the domain
+sX{2,3} = [ sX{2,3};
+            1 - R{2,3};
+            1 + R{2,3} ];
+h{2} = 0;
+TarPt2 = @(xx) -xx(3);
+H{2} = rescale_guard(TarPt2, x{2}, scale_x{2}, trans_x{2});
 
 % Mode 3 : Flight 2
 hX3 = @(xx) [ domain_size{3}(:,2) - xx;
              xx - domain_size{3}(:,1) ];
 G31 = @(xx) [ domain_size{3}(1:2,2) - xx(1:2);
-             xx(1:2) - domain_size{3}(1:2,1);
-             - (xx(3) - yR)^2;
-             - xx(4) ];
+              xx(1:2) - domain_size{3}(1:2,1);
+              - (xx(3) - yR)^2;
+              domain_size{3}(4,2) - xx(4);
+              xx(4) - domain_size{3}(4,1) ];
 % R31 is Reset_F2S_Approx
 hX{3} = rescale_dynamics(hX3, x{3}, scale_x{3}, trans_x{3});
 sX{3,1} = rescale_guard(G31, x{3}, scale_x{3}, trans_x{3});
 R{3,1} = rescale_reset(@Reset_F2S_Approx, x{3}, scale_x{3}, trans_x{3}, scale_x{1}, trans_x{1});
-h{3} = 1;
-H{3} = 0;
+sX{3,1} = [ sX{3,1};
+            1 - R{3,1};
+            1 + R{3,1} ];
+h{3} = 0;
+TarPt3 = @(xx) -xx(3);
+H{3} = rescale_guard(TarPt2, x{3}, scale_x{3}, trans_x{3});
 
 % Initial condition and target point
-x0{3} = [ 0; 1.7; 1; 0 ];
-TarPt1 = @(x) [ domain_size{1}(1:4,2) - x(1:4);
-                x(1:4) - domain_size{1}(1:4,1);
-                x(5) - 1.5 ];
-hXT{1} = rescale_guard(TarPt1, x{1}, scale_x{1}, trans_x{1});
-TarPt2 = @(x) [ x(1) - 1.5;
-                domain_size{2}(2:4,2) - x(2:4);
-                x(2:4) - domain_size{2}(2:4,1) ];
-hXT{2} = rescale_guard(TarPt2, x{2}, scale_x{2}, trans_x{2});
-TarPt3 = @(x) [ x(1) - 1.5;
-                domain_size{2}(2:4,2) - x(2:4);
-                x(2:4) - domain_size{2}(2:4,1) ];
-hXT{3} = rescale_guard(TarPt3, x{3}, scale_x{3}, trans_x{3});
+x0{1} = [ 0.9; 0; 0; 0; 1 ];
+x0{1} = rescale_state( x0{1}, domain_size{1} );
+hXT{1} = hX{1};
+hXT{2} = hX{2};
+hXT{3} = hX{3};
 
 % Options
-options.MinimumTime = 1;
+options.MinimumTime = 0;
 options.withInputs = 1;
 options.svd_eps = 1e4;
 

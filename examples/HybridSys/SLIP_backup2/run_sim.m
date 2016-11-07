@@ -9,7 +9,7 @@ addpath('PolyDynamics');
 addpath('TrueDynamics');
 
 params = SLIPParams;
-controller = @(xx) 0;
+controller = @(x) 0;
 % current_mode = 3;       % 1 = Stance; 2 = Flight, under; 3 = Flight, above
 % x0 = [ 0; 1.5; 1.2; 0 ];
 current_mode = 3;
@@ -17,7 +17,7 @@ x0 = [ 0; 1.7; 1; 0 ];    % I found a limit cycle!!!!! Need controller = 0
 % current_mode = 3;
 % x0 = [ 0; 1.15; 1.1; 0 ];
 
-opt = [ ...     % 1 = actual, o.w. = taylor expansion
+opt = [ ...     % 1 = actual, 2 = taylor expansion
         1;      % Dynamics
         1;      % Guard
         1;      % Reset map
@@ -115,12 +115,12 @@ while current_time < MaxTime - 0.1
     end
 end
 
-figure(2);
-hold on;
-plot(t_hist, x_dot_hist,'LineWidth',2);
-title('x dot');
+% figure(2);
+% hold on;
+% plot(t_hist, x_dot_hist,'LineWidth',2);
+% title('x dot');
 % 
-figure(3);
+figure(2);
 hold on;
 plot(t_hist, y_hist, 'LineWidth', 2);
 title('y');

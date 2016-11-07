@@ -1,28 +1,32 @@
 % Simulation : SLIP
 % Stance & Flight
+% Simulation with 3 modes. Even though the dynamics for F1 and F2 are
+% the same, we just want to check all the guards and reset maps make sense.
+% 
+% For all the cases I've tested on, the results matched the ones given by
+% run_sim.m well.
 
 clear;
-% close all;
+close all;
 
 addpath('Utils');
 addpath('PolyDynamics');
 addpath('TrueDynamics');
+addpath('Dynamics3');
 
 params = SLIPParams;
-controller = @(xx) 0;
+controller = @(x) 0;
 % current_mode = 3;       % 1 = Stance; 2 = Flight, under; 3 = Flight, above
 % x0 = [ 0; 1.5; 1.2; 0 ];
-current_mode = 3;
-x0 = [ 0; 1.7; 1; 0 ];    % I found a limit cycle!!!!! Need controller = 0
-% current_mode = 3;
-% x0 = [ 0; 1.15; 1.1; 0 ];
 
-opt = [ ...     % 1 = actual, o.w. = taylor expansion
+current_mode = 3;
+x0 = [ 0; 1.7; 1; 0 ];
+
+opt = [ ...     % 1 = actual, 2 = taylor expansion
         1;      % Dynamics
         1;      % Guard
         1;      % Reset map
        ];
-
 
 MaxTime = 6;
 current_time = 0;
@@ -48,14 +52,12 @@ while current_time < MaxTime - 0.1
                 [ tout, xout, event_time, event_state, event_id ] = ...
                 ode45(@(t,x) Stance_f(x) + ...
                              Stance_g(x) * controller(x), ...
-                             (current_time : 0.02 : MaxTime), x0, options);
-%                              [current_time,MaxTime], x0, options);
+                             (current_time : 0.01 : MaxTime), x0, options);
             else
                 [ tout, xout, event_time, event_state, event_id ] = ...
                 ode45(@(t,x) Stance_f_Approx(x) + ...
                              Stance_g_Approx(x) * controller(x), ...
                              (current_time : 0.02 : MaxTime), x0, options);
-%                              [current_time,MaxTime], x0, options);
             end
             current_time = tout(end);
             t_hist = [t_hist; tout];
@@ -71,24 +73,47 @@ while current_time < MaxTime - 0.1
             P.Visualize( tout, xout, current_mode );
             % Reset
             if ~isempty(event_id)
-                if opt(3)
-                    x0 = Reset_S2F(xout(end,:),params);
+                xend = xout(end,:);
+                x0 = Reset_S2F(xend,params);
+                if (xend(3)+params.alpha<0)
+                    current_mode = 2;
                 else
-                    x0 = Reset_S2F_Approx(xout(end,:),params);
+                    current_mode = 3;
                 end
-                current_mode = 2;
             end
-        case {2,3}      % Flight
-            if opt(2)
-                options = odeset('Events',@EvtFunc_F2S);
-            else
-                options = odeset('Events',@EvtFunc_F2S_Approx);
-            end
+        case 2      % Flight 1 (under ground)
+            options = odeset('Events',@EvtFunc_F1);
             options = odeset(options,'AbsTol',1e-9,'RelTol',1e-8);
             [ tout, xout, event_time, event_state, event_id ] = ...
-                ode45(@(t,x) Flight_f(x) + ...
-                             Flight_g(x) * controller(x), ...
-                             (current_time : 0.02 : MaxTime), x0, options);
+                ode45(@(t,x) Flight_f(x,params) + ...
+                             Flight_g(x,params) * controller(x), ...
+                             (current_time : 0.01 : MaxTime), x0, options);
+            current_time = tout(end);
+            t_hist = [t_hist; tout];
+            x_hist = [x_hist; xout(:,1)];
+            x_dot_hist = [x_dot_hist; xout(:,2)];
+            y_hist = [y_hist; xout(:,3)];
+            y_dot_hist = [y_dot_hist; xout(:,4)];
+            l_hist = [l_hist; NaN * xout(:,1)];
+            l_dot_hist = [l_dot_hist; NaN * xout(:,1)];
+            theta_hist = [theta_hist; NaN * xout(:,1)];
+            theta_dot_hist = [theta_dot_hist; NaN * xout(:,1)];
+            
+            
+            P.Visualize( tout, xout, current_mode );
+            % Reset
+            if ~isempty(event_id)
+                xend = xout(end,:);
+                x0 = xend;
+                current_mode = 3;
+            end
+        case 3      % Flight 2 (above ground)
+            options = odeset('Events',@EvtFunc_F2S);
+            options = odeset(options,'AbsTol',1e-9,'RelTol',1e-8);
+            [ tout, xout, event_time, event_state, event_id ] = ...
+                ode45(@(t,x) Flight_f(x,params) + ...
+                             Flight_g(x,params) * controller(x), ...
+                             (current_time : 0.01 : MaxTime), x0, options);
             current_time = tout(end);
             t_hist = [t_hist; tout];
             x_hist = [x_hist; xout(:,1)];
@@ -103,27 +128,23 @@ while current_time < MaxTime - 0.1
             P.Visualize( tout, xout, current_mode );
             % Reset
             if ~isempty(event_id)
-                if opt(3)
-                    x0 = Reset_F2S(xout(end,:),params);
-                else
-                    x0 = Reset_F2S_Approx(xout(end,:),params);
-                end
+                xend = xout(end,:);
+                x0 = Reset_F2S(xend,params);
                 current_mode = 1;
             end
+            
         otherwise
             error('Invalid Mode');
     end
 end
 
-figure(2);
-hold on;
-plot(t_hist, x_dot_hist,'LineWidth',2);
-title('x dot');
+% figure;
+% plot(t_hist, x_dot_hist,'LineWidth',2);
+% title('x dot');
 % 
-figure(3);
-hold on;
-plot(t_hist, y_hist, 'LineWidth', 2);
-title('y');
+% figure;
+% plot(t_hist, y_hist, 'LineWidth', 2);
+% title('y');
 % 
 % figure;
 % plot(t_hist, y_dot_hist, 'LineWidth',2);

@@ -38,19 +38,9 @@ alpha = params.alpha;
 yR = params.l0 * cos(alpha);
 
 % Dynamics
-domain_size{1} = [ 0.6, 1;
-                   -1.5, 1.5;
-                   -pi/4, pi/4;
-                   -3, 0;
-                   0, 6 ];
-domain_size{2} = [ 0, 6;
-                   1.5, 2;
-                   0.7, yR;
-                   0, 1 ];
-domain_size{3} = [ 0, 6;
-                   1.5, 2;
-                   yR, 1.2;
-                   -1, 1 ];
+domain_size{1} = params.domain_size{1};
+domain_size{2} = params.domain_size{2};
+domain_size{3} = params.domain_size{3};
 for i = 1 : nmodes
     scale_x{i} = (domain_size{i}(:,2) - domain_size{i}(:,1)) / 2;
     trans_x{i} = mean(domain_size{i},2);
@@ -127,20 +117,20 @@ H{3} = 0;
 x0{3} = [ 0; 1.7; 1; 0 ];
 TarPt1 = @(x) [ domain_size{1}(1:4,2) - x(1:4);
                 x(1:4) - domain_size{1}(1:4,1);
-                x(5) - 5 ];
+                x(5) - 1.5 ];
 hXT{1} = rescale_guard(TarPt1, x{1}, scale_x{1}, trans_x{1});
-TarPt2 = @(x) [ x(1) - 5;
+TarPt2 = @(x) [ x(1) - 1.5;
                 domain_size{2}(2:4,2) - x(2:4);
                 x(2:4) - domain_size{2}(2:4,1) ];
 hXT{2} = rescale_guard(TarPt2, x{2}, scale_x{2}, trans_x{2});
-TarPt3 = @(x) [ x(1) - 5;
+TarPt3 = @(x) [ x(1) - 1.5;
                 domain_size{2}(2:4,2) - x(2:4);
                 x(2:4) - domain_size{2}(2:4,1) ];
 hXT{3} = rescale_guard(TarPt3, x{3}, scale_x{3}, trans_x{3});
 
 % Options
 options.MinimumTime = 1;
-options.withInputs = 0;
+options.withInputs = 1;
 options.svd_eps = 1e4;
 
 %% Solve

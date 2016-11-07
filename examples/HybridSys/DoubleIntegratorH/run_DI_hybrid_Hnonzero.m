@@ -1,7 +1,10 @@
-% Double integrator - Minimum Time
+% Double integrator
+% h = 0, H = x^2
+% Just to see the solver works well with this cost function
+% 
 
 clear;
-scaling = 5;
+scaling = 3;
 d = 6;
 nmodes = 2;
 r2 = 0.3;
@@ -37,24 +40,27 @@ g{2} = g{1};
 % Mode 1 
 y = x{1};
 hX{1} = r2 - y'*y;
-hXT{1} = 0-y.^2;
+% hXT{1} = 0-y.^2
+hXT{1} = hX{1};
 % sX{1,2} = [ r2 - y' * y;
 %             y' * y - r2 ];
 % R{1,2} = x{2};
-h{1} = 1;
-H{1} = 0;
+h{1} = 0;
+H{1} = y' * y;
 
 % Mode 2
 y = x{2};
 hX{2} = [ y'*y - r2;
           y(2) + 1 ];
+hXT{2} = hX{2};
 sX{2,1} = [ r2 - y' * y;
             y' * y - r2 ];
 R{2,1} = x{1};
-h{2} = 1;
+h{2} = 0;
+H{2} = y' * y;
 
 % Options
-options.MinimumTime = 1;
+options.MinimumTime = 0;
 options.withInputs = 1;
 options.svd_eps = 1e4;
 
@@ -94,13 +100,13 @@ ode_options = odeset('Events',@EventFcn);
 % ode_options = odeset;
 % Trajectory from simulation
 [ tval, xval, time_event, ~, id_event ] = ode45(@(tt,xx) scaling * Hybrid_DIEq( tt, xx, controller, @(x) 1, [t;x{1}] ), ...
-                       [0:0.001:0.75], [xs0; 0], ode_options );
+                       [0:0.01:1], [xs0; 0], ode_options );
 h_traj = plot(xval(:,1), xval(:,2),'LineWidth',2);
-% Actual optimal trajectory
-[ ~, xvalA1 ] = ode45(@(tt,xx) DIEq_optimal( tt, xx, xs0 ), [0:0.001:xs0(2) + sqrt( xs0(1) + xs0(2)^2/2 )], xs0 );
-[ ~, xvalA2 ] = ode45(@(tt,xx) DIEq_optimal( tt, xx, xs0 ), [xs0(2) + sqrt( xs0(1) + xs0(2)^2/2 ):0.001: 0.6*scaling], xvalA1(end,:));
-xvalA1 = [xvalA1;xvalA2];
-h_traj2 = plot(xvalA1(:,1), xvalA1(:,2), 'k--');
+% % Actual optimal trajectory
+% [ ~, xvalA1 ] = ode45(@(tt,xx) DIEq_optimal( tt, xx, xs0 ), [0:0.001:xs0(2) + sqrt( xs0(1) + xs0(2)^2/2 )], xs0 );
+% [ ~, xvalA2 ] = ode45(@(tt,xx) DIEq_optimal( tt, xx, xs0 ), [xs0(2) + sqrt( xs0(1) + xs0(2)^2/2 ):0.001: 0.6*scaling], xvalA1(end,:));
+% xvalA1 = [xvalA1;xvalA2];
+% h_traj2 = plot(xvalA1(:,1), xvalA1(:,2), 'k--');
 
 % plot([-1,1.5],[-1,-1],'k');
 plot(x0{2}(1),x0{2}(2),'Marker','o','MarkerEdgeColor',[0 0.4470 0.7410]);
@@ -113,7 +119,7 @@ set(gca, 'FontSize', 20);
 xlabel('$x_1$','Interpreter','LaTex','FontSize',30);
 ylabel('$x_2$','Interpreter','LaTex','FontSize',30);
 box on;
-legend([h_area(2) h_area2(2) h_traj h_traj2], {'Mode 1', 'Mode 2', 'Trajectory under extracted control law', 'Optimal trajectory'});
+% legend([h_area(2) h_area2(2) h_traj h_traj2], {'Mode 1', 'Mode 2', 'Trajectory under extracted control law', 'Optimal trajectory'});
 
 [~,idx] = find( id_event == 2 );
 tcross = scaling * time_event( idx(1) );
@@ -130,10 +136,10 @@ for i = 1 : length(tval)
     end
 end
 plot(tval*5, uval,'Linewidth',2);
-tvalu = [0, xs0(2) + sqrt( xs0(1) + xs0(2)^2/2 ), xs0(2) + sqrt( xs0(1) + xs0(2)^2/2 ), 0.75*scaling];
-uvalu = [-1,-1,1,1];
-plot(tvalu, uvalu,'--k');
-legend('Extracted control','Optimal value');
+% tvalu = [0, xs0(2) + sqrt( xs0(1) + xs0(2)^2/2 ), xs0(2) + sqrt( xs0(1) + xs0(2)^2/2 ), 0.75*scaling];
+% uvalu = [-1,-1,1,1];
+% plot(tvalu, uvalu,'--k');
+% legend('Extracted control','Optimal value');
 
 % plot([0,5],[-1,-1],'--k');
 % plot([0,5],[1,1],'--k');

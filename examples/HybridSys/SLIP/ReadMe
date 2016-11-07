@@ -1,0 +1,18 @@
+1. Jump high!
+	* Uncomment Line 43 of SLIPParams.m, so that theta_dot and x_dot can be negative, and
+          alpha = 0.
+    * EvalControl_scaled.m, Line 56: change to '@Reset_S2F_Approx0',
+          so that the reset map is taylor expanded around 0 (instead of -pi/6).
+    * Make sure scaling and x0 are correctly defined.
+
+2. Stay low!
+	* Uncomment Line 43 of SLIPParams.m, so that theta_dot and x_dot can be negative, and
+          alpha = 0.
+	* EvalControl_scaled.m, Line 56: change to '@Reset_S2F_Approx0',
+          so that the reset map is taylor expanded around 0 (instead of -pi/6).
+    * Make sure scaling and x0 are correctly defined.
+
+3. Run far!
+    * Uncomment Line 23 of SLIPParams.m
+    * EvalControl_scaled.m, Line 56: change to '@Reset_S2F_Approx'
+    * Make sure scaling and x0 are correctly defined.

@@ -1,6 +1,4 @@
-function [value, isterminal, direction] = EvtFunc_F2S_Approx( ~, x )
-% This function is exactly the same as EvtFunc_F2S.m, i.e.
-% we don't need the approximation of cos(alpha) in this case.
+function [value, isterminal, direction] = EvtFunc_F2S( ~, x )
 polycos = @(x) cos(x);
 params = SLIPParams;
 yR = params.l0 * polycos(params.alpha);

@@ -1,9 +1,7 @@
 % SLIP model, only stance mode, no reset, just to see what the problem is 
-% It's different from SimpleModel.m in two ways:
-% 1. The target set is just the entire space, and the cost function looks
-% something like "h = 0, H = (x - x_target)^2"
-% 2. The initial condition is theta = theta_dot = 0, so we don't lean
-% forwards or backwards.
+% It's different from SimpleModel2.m in the following way:
+% 1. I decide to stick to the domain defined in SLIPParams.m
+% 2. Our objective is to get the SLIP to stablize around l=0.9 (the equilibrium point)
 % 
 
 clear;
@@ -12,7 +10,7 @@ addpath('Utils');
 addpath('PolyDynamics');
 
 d = 6;
-scaling = 2;
+scaling = 5;
 nmodes = 1;
 
 % polysin = @(x) x - x^3/6;
@@ -34,7 +32,6 @@ R = cell( nmodes, nmodes );
 h = cell( nmodes, 1 );
 H = cell( nmodes, 1 );
 
-domain_size = cell( nmodes, 1 );
 scale_x = cell( nmodes, 1 );
 trans_x = cell( nmodes, 1 );
 
@@ -45,12 +42,7 @@ l0 = params.l0;
 gg = params.g;
 
 % Dynamics
-domain_size{1} = [ 0.5, 1;
-                   -5, 5;
-                   -pi/3, pi/3;
-                   -2*pi/3, 2*pi/3;
-                   0, 5 ];
-% domain_size = params.domain_size;
+domain_size = params.domain_size;
 for i = 1 : nmodes
     scale_x{i} = (domain_size{i}(:,2) - domain_size{i}(:,1)) / 2;
     trans_x{i} = mean(domain_size{i},2);
@@ -86,7 +78,7 @@ hXT{1} = hX{1};
 % Options
 options.MinimumTime = 0;
 options.withInputs = 1;
-options.svd_eps = 1e4;
+options.svd_eps = 1e3;
 
 %% Solve
 [out] = HybridOptimalControlDualSolver1(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);

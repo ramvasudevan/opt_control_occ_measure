@@ -1,10 +1,11 @@
 function [ R ] = Reset_F2S(x,~)
+
 params = SLIPParams;
 alpha = params.alpha;
 l0 = params.l0;
 
-polysin = @(xx) sin(xx);
-polycos = @(xx) cos(xx);
+polysin = @(x) sin(x);
+polycos = @(x) cos(x);
 
 
 R = [ l0;

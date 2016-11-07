@@ -9,8 +9,8 @@ clear;
 % close all;
 
 addpath('Utils');
-addpath('Dynamics');
-addpath('EventFcns');
+addpath('PolyDynamics');
+addpath('TrueDynamics');
 
 params = SLIPParams;
 controller = @(x) -1;
@@ -63,15 +63,19 @@ while current_time < MaxTime - 0.1
 %             P.Visualize( tout, xout, current_mode );
             % Reset
             if ~isempty(event_id)
-                x0 = Rs_S2F(xout(end,:)');
+                if opt(3)
+                    x0 = Reset_S2F(xout(end,:)');
+                else
+                    x0 = Reset_S2F_Approx(xout(end,:)');
+                end
                 current_mode = 2;
             end
         case {2,3}      % Flight
             options = odeset('Events',@EvtFunc_F2S);
             options = odeset(options,'AbsTol',1e-9,'RelTol',1e-8);
             [ tout, xout, event_time, event_state, event_id ] = ...
-                ode45(@(t,x) Flight_Approx_f(x,params) + ...
-                             Flight_Approx_g(x,params) * controller(x), ...
+                ode45(@(t,x) Flight_f(x,params) + ...
+                             Flight_g(x,params) * controller(x), ...
                              (current_time : 0.01 : MaxTime), x0, options);
             current_time = tout(end);
             t_hist = [t_hist; tout];
@@ -82,7 +86,14 @@ while current_time < MaxTime - 0.1
 %             P.Visualize( tout, xout, current_mode );
             % Reset
             if ~isempty(event_id)
-                x0 = Rs_F2S(xout(end,:)');
+                if find(event_id == 1)
+                    error('Something is wrong!');
+                end
+                if opt(3)
+                    x0 = Reset_F2S(xout(end,:)');
+                else
+                    x0 = Reset_F2S_Approx(xout(end,:)');
+                end
                 current_mode = 1;
             end
         otherwise
