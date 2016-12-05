@@ -1,6 +1,8 @@
 % SLIP model, 3 modes, vertical partation of flight phase
 % Goal: jump as high as possible, at a given terminal time
 % *WITH* horizontal displacement as one of the states.
+% h = 0, H = -y, XT = X
+% Fixed terminal time
 
 clear;
 
@@ -10,7 +12,7 @@ addpath('TrueDynamics');
 addpath('Plot');
 
 d = 6;
-scaling = 3;
+scaling = 3.4;
 nmodes = 3;
 
 % Define variables
@@ -113,14 +115,15 @@ TarPt3 = @(xx) -xx(3);
 H{3} = rescale_guard(TarPt3, x{3}, scale_x{3}, trans_x{3});
 
 % Initial condition and target point
-x0{1} = [ 0.9; 0; 0; 0; 1 ];
-x0{1} = rescale_state( x0{1}, domain_size{1} );
+x0{3} = [ 0; 1.7; 1; 0 ];
+x0{3} = rescale_state( x0{3}, domain_size{3} );
 hXT{1} = hX{1};
 hXT{2} = hX{2};
 hXT{3} = hX{3};
 
 % Options
 options.MinimumTime = 0;
+options.freeFinalTime = 0;
 options.withInputs = 1;
 options.svd_eps = 1e4;
 

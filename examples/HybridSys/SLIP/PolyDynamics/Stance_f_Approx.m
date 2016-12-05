@@ -6,10 +6,13 @@ k = params.k;
 m = params.m;
 umax = params.umax;
 
-q1 = x(1);
-q2 = x(2);
-q3 = x(3);
-q4 = x(4);
+if size(x,1) == 1
+    x = x';
+end
+q1 = x(1,:);
+q2 = x(2,:);
+q3 = x(3,:);
+q4 = x(4,:);
 
 % out = ...
 %     [ q2;

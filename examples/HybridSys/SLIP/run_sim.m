@@ -14,8 +14,9 @@ controller = @(xx) 0;
 % x0 = [ 0; 1.5; 1.2; 0 ];
 current_mode = 3;
 x0 = [ 0; 1.7; 1; 0 ];    % I found a limit cycle!!!!! Need controller = 0
+% x0 = [0; 3; 1; 0];
 % current_mode = 3;
-% x0 = [ 0; 1.15; 1.1; 0 ];
+% x0 = [ 0; 1.7; 1; 0 ];
 
 opt = [ ...     % 1 = actual, o.w. = taylor expansion
         1;      % Dynamics
@@ -115,6 +116,9 @@ while current_time < MaxTime - 0.1
     end
 end
 
+state_hist = [ l_hist, l_dot_hist, theta_hist, theta_dot_hist,...
+                       x_hist, x_dot_hist, y_hist, y_dot_hist ];
+
 figure(2);
 hold on;
 plot(t_hist, x_dot_hist,'LineWidth',2);
@@ -124,6 +128,7 @@ figure(3);
 hold on;
 plot(t_hist, y_hist, 'LineWidth', 2);
 title('y');
+
 % 
 % figure;
 % plot(t_hist, y_dot_hist, 'LineWidth',2);

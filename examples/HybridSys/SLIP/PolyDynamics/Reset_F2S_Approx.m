@@ -10,7 +10,6 @@ l0 = params.l0;
 polysin = @(xx) sin(xx);
 polycos = @(xx) cos(xx);
 
-
 R = [ l0;
       -x(2) * polysin(alpha) + x(4) * polycos(alpha);
       alpha;

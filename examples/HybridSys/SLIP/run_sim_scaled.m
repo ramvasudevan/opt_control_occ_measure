@@ -1,5 +1,5 @@
 % Simulation with scaled dynamics
-% Horizontal partition of flight phase (less preferred)
+% Vertical partition of flight phase (preferred)
 % 
 % 3 modes
 % 

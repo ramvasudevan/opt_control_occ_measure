@@ -1,6 +1,7 @@
 % SLIP model, 3 modes, vertical partation of flight phase
 % Goal: reach a certain distance within minimum time
-% 
+% h = 1, H = 0, XT = {x >= 4/6/8}
+% Free terminal time
 
 clear;
 
@@ -10,7 +11,7 @@ addpath('TrueDynamics');
 addpath('Plot');
 
 d = 6;
-scaling = 3;
+scaling = 6;
 nmodes = 3;
 
 % Define variables
@@ -70,14 +71,14 @@ R{1,2} = rescale_reset(@Reset_S2F_Approx, x{1}, scale_x{1}, trans_x{1}, scale_x{
 sX{1,2} = [ sX{1,2};
             1 - R{1,2};
             1 + R{1,2} ];
-h{1} = 1;
+h{1} = 3;
 H{1} = 0;
 
 % Mode 2 : Flight 1
 hX2 = @(xx) [ domain_size{2}(:,2) - xx;
               xx - domain_size{2}(:,1) ];
-G23 = @(xx) [ domain_size{2}(1:2,2) - xx(1:2);      % Don't be naive! R23 isn't identity!!
-              xx(1:2) - domain_size{2}(1:2,1);
+G23 = @(xx) [ domain_size{2}(1:3,2) - xx(1:3);      % Don't be naive! R23 isn't identity!!
+              xx(1:3) - domain_size{2}(1:3,1);
               - xx(4)^2 ];        % y_dot = 0
 R23 = @(x) x;
 hX{2} = rescale_dynamics(hX2, x{2}, scale_x{2}, trans_x{2});
@@ -110,9 +111,10 @@ H{3} = 0;
 
 % Initial condition and target point
 x0{3} = [ 0; 1.7; 1; 0 ];
+% x0{3} = [ 0; 1.15; 1; 0 ];
 x0{3} = rescale_state( x0{3}, domain_size{3} );
-TarPt1 = @(xx) xx(5) - 4;
-TarPt2 = @(xx) xx(1) - 4;
+TarPt1 = @(xx) xx(5) - 2.5;
+TarPt2 = @(xx) xx(1) - 2.5;
 TarPt3 = TarPt2;
 hXT{1} = [ hX{1}; rescale_guard(TarPt1, x{1}, scale_x{1}, trans_x{1}) ];
 hXT{2} = [ hX{2}; rescale_guard(TarPt2, x{2}, scale_x{2}, trans_x{2}) ];

@@ -19,10 +19,10 @@ controller = @(xx) 0;
 % current_mode = 3;       % 1 = Stance; 2 = Flight, under; 3 = Flight, above
 % x0 = [ 0; 1.5; 1.2; 0 ];
 
-% current_mode = 3;
-% x0 = [ 0; 1.7; 1; 0 ];
 current_mode = 3;
-x0 = [0;0;1.2;0];
+x0 = [ 0; 1.7; 1; 0 ];
+% current_mode = 3;
+% x0 = [0;0;1.2;0];
 
 opt = [ ...     % 1 = actual, 2 = taylor expansion
         1;      % Dynamics
@@ -35,6 +35,7 @@ current_time = 0;
 
 P = SLIPPlot( current_mode, x0, params );
 t_hist = [];
+mode_hist = [];
 x_hist = [];
 x_dot_hist = [];
 y_hist = [];
@@ -63,6 +64,7 @@ while current_time < MaxTime - 0.1
             end
             current_time = tout(end);
             t_hist = [t_hist; tout];
+            mode_hist = [mode_hist; ones(length(tout),1)*current_mode];
             x_hist = [x_hist; xout(:,5)];
             x_dot_hist = [x_dot_hist; NaN * xout(:,1)];
             y_hist = [y_hist; NaN * xout(:,1)];
@@ -92,6 +94,7 @@ while current_time < MaxTime - 0.1
                              (current_time : 0.01 : MaxTime), x0, options);
             current_time = tout(end);
             t_hist = [t_hist; tout];
+            mode_hist = [mode_hist; ones(length(tout),1)*current_mode];
             x_hist = [x_hist; xout(:,1)];
             x_dot_hist = [x_dot_hist; xout(:,2)];
             y_hist = [y_hist; xout(:,3)];
@@ -118,6 +121,7 @@ while current_time < MaxTime - 0.1
                              (current_time : 0.01 : MaxTime), x0, options);
             current_time = tout(end);
             t_hist = [t_hist; tout];
+            mode_hist = [mode_hist; ones(length(tout),1)*current_mode];
             x_hist = [x_hist; xout(:,1)];
             x_dot_hist = [x_dot_hist; xout(:,2)];
             y_hist = [y_hist; xout(:,3)];
@@ -140,6 +144,14 @@ while current_time < MaxTime - 0.1
     end
 end
 
+state_hist = [ l_hist, l_dot_hist, theta_hist, theta_dot_hist,...
+                       x_hist, x_dot_hist, y_hist, y_dot_hist, mode_hist ];
+
+idx_mat = mode_hist(2:end) - mode_hist(1:end-1);
+idx = [ find( idx_mat > 0 ); find( idx_mat < 0 )+1];
+idx = sort([1; idx]);
+
+
 % figure;
 % plot(t_hist, x_dot_hist,'LineWidth',2);
 % title('x dot');
@@ -147,6 +159,9 @@ end
 figure;
 plot(t_hist, y_hist, 'LineWidth', 2);
 title('y');
+
+
+
 % 
 % figure;
 % plot(t_hist, y_dot_hist, 'LineWidth',2);

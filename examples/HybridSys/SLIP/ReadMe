@@ -14,5 +14,10 @@
 
 3. Run far!
     * Uncomment Line 23 of SLIPParams.m
-    * EvalControl_scaled.m, Line 56: change to '@Reset_S2F_Approx'
+    * EvalControl_scaled.m, Line 61: change to '@Reset_S2F_Approx'
+    * Make sure scaling and x0 are correctly defined.
+
+4. Run far, but with horizontal partition of flight phase.
+    * Uncomment Line 63 of SLIPParams.m
+    * EvalControl_scaled.m, Line 61: change to '@Reset_S2F_Approx'
     * Make sure scaling and x0 are correctly defined.
