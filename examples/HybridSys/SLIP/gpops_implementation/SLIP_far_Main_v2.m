@@ -2,6 +2,7 @@
 % SLIP model, get to x>=8 in minimum time.
 % c.f. run_SLIP_far.m
 % 
+% *STARTS FROM MODE 2*
 
 % clear;
 clc;
@@ -9,25 +10,22 @@ clc;
 %-------------------------------------------------------------------------%
 %--------------- Provide All Physical Data for Problem -------------------%
 %-------------------------------------------------------------------------%
-nphases = 9;
-% Target = -0.4;
-Target = 0.5;
-% Target = 0.1;
+nphases = 5;
+Target = -0.3;
 params = SLIPParams;
 auxdata = struct;
 auxdata.l0 = params.l0;
 auxdata.yR = params.yR;
 auxdata.nphases = nphases;
 auxdata.Target = Target;
-auxdata.init = 1;       % Initial mode, mode 3 = 1, mode 2 = 0, mode 1 = 2
+auxdata.init = 0;       % Initial mode, mode 3 = 1, mode 2 = 0, mode 1 = 2
 
 %-------------------------------------------------------------------------%
 %----------------- Provide All Bounds for Problem ------------------------%
 %-------------------------------------------------------------------------%
 T = 10;
 t0 = 0;
-% x0 = [ -1, 0.3, 0.2, 0 ];
-x0 = [ -1, 0.3, 0.2, 0 ];
+x0 = [ -1, 0.3, 0.17, 0.1 ];
 params = SLIPParams;
 
 offset = auxdata.init;

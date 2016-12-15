@@ -43,8 +43,8 @@ classdef SLIPPlot < handle
             end
             
             figure(1);
-            xlim([-1,12]);
-            ylim([-0.5,3]);
+            xlim([-1.2,1.2]);
+            ylim([-0.1,0.4]);
             P.h_2d = gca;
             hold( P.h_2d, 'on' );
             P.UpdatePos;
@@ -63,7 +63,7 @@ classdef SLIPPlot < handle
                             '-b', 'LineWidth', 4 );
             
             P.h_gnd = plot(P.h_2d, ...
-                           [-1, 13], [0,0], '-k', 'LineWidth', 2);
+                           [-2, 13], [0,0], '-k', 'LineWidth', 2);
             
             hold( P.h_2d, 'off' );
             title( P.h_2d, 0 );

@@ -8,6 +8,9 @@ g = params.g;
 %         -g ];
 
 % Vectorize
+if size(x,1) == 1
+    x = x';
+end
 out = [ x(2,:);
         0 * x(2,:);
         x(4,:);

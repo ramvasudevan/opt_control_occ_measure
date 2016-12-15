@@ -1,5 +1,6 @@
 % SLIP model, 3 modes, vertical partation of flight phase
 % Goal: reach a certain distance within minimum time
+% *STARTS FROM MODE 2*
 % h = 1, H = 0, XT = {x >= 4/6/8}
 % Free terminal time
 
@@ -10,11 +11,10 @@ addpath('PolyDynamics');
 addpath('TrueDynamics');
 addpath('Plot');
 
-d = 8;
+d = 6;
 scaling = 6;
 nmodes = 3;
-% Target = -0.4;
-Target = 0.5;
+Target = -0.3;
 
 % Define variables
 t = msspoly( 't', 1 );
@@ -97,7 +97,7 @@ h{3} = 1;
 H{3} = 0;
 
 % Initial condition and target point
-x0{3} = [ -1; 0.3; 0.21; 0 ];
+x0{2} = [ -1; 0.3; 0.17; 0.1 ];
 
 hXT{1} = [ x{1}(5) - Target; hX{1} ];
 hXT{2} = [ x{2}(1) - Target; hX{2} ];

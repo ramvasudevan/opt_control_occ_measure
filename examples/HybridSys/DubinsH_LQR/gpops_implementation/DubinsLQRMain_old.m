@@ -124,8 +124,8 @@ mesh.maxiterations   = 10;
 %------------- Assemble Information into Problem Structure ---------------%        
 %-------------------------------------------------------------------------%
 setup.name                           = 'DubinsCar_LQR';
-setup.functions.continuous           = @DubinsLQRContinuous;
-setup.functions.endpoint             = @DubinsLQREndpoint;
+setup.functions.continuous           = @DubinsLQRContinuous_old;
+setup.functions.endpoint             = @DubinsLQREndpoint_old;
 setup.displaylevel                   = 1;
 setup.bounds                         = bounds;
 setup.guess                          = guess;

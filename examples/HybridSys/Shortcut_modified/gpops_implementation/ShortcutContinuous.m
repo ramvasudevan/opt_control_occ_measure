@@ -1,7 +1,7 @@
 %-----------------------------------%
-% BEGIN: DubinsTContinuous.m %
+% BEGIN: ShortcutContinuous.m %
 %-----------------------------------%
-function phaseout = DubinsLQRContinuous(input)
+function phaseout = ShortcutContinuous(input)
 
 % xref = [ 0.5, -0.2, 0 ];
 
@@ -18,24 +18,16 @@ xdot = u1(:,1) .* ( 1 - x1( :,3 ).^2/2 );
 ydot = u1(:,1) .* x1(:,3);
 thetadot = u1(:,2);
 phaseout(1).dynamics = [ xdot, ydot, thetadot ];
-phaseout(1).integrand = ...
-    (x1(:,1) - 0.5).^2 + (x1(:,2) + 0.2).^2 + u1(:,1).^2 + (u1(:,2)/3).^2;
+phaseout(1).integrand = ones(n1,1);
 
 %---------------------%
 % Dynamics in Phase 2 %
 %---------------------%
-x2 = input.phase(2).state;
 u2 = input.phase(2).control;
-n2 = size(x2,1);
+n2 = size(u2,1);
 
-% xdot = u2(:,1) .* cos(x2(:,3));
-% ydot = u2(:,1) .* sin(x2(:,3));
-xdot = u2(:,1) .* ( 1 - x2( :,3 ).^2/2 );
-ydot = u2(:,1) .* x2(:,3);
-thetadot = u2(:,2);
-phaseout(2).dynamics = [ xdot, ydot, thetadot ];
-phaseout(2).integrand = ...
-    (x2(:,1) - 0.5).^2 + (x2(:,2) + 0.2).^2 + u2(:,1).^2 + (u2(:,2)/3).^2;
+phaseout(2).dynamics = u2;
+phaseout(2).integrand = ones(n2,1);
 
 %---------------------%
 % Dynamics in Phase 3 %
@@ -50,9 +42,8 @@ xdot = u3(:,1) .* ( 1 - x3( :,3 ).^2/2 );
 ydot = u3(:,1) .* x3(:,3);
 thetadot = u3(:,2);
 phaseout(3).dynamics = [ xdot, ydot, thetadot ];
-phaseout(3).integrand = ...
-    (x3(:,1) - 0.5).^2 + (x3(:,2) + 0.2).^2 + u3(:,1).^2 + (u3(:,2)/3).^2;
+phaseout(3).integrand = ones(n3,1);
 
 %---------------------------------%
-% END: DubinsTContinuous.m %
+% END: ShortcutContinuous.m %
 %---------------------------------%

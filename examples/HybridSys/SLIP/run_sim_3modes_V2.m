@@ -3,6 +3,8 @@
 % Simulation with 3 modes. Even though the dynamics for F1 and F2 are
 % the same, we just want to check all the guards and reset maps make sense.
 % 
+% *START FROM MODE 2*
+% 
 % For all the cases I've tested on, the results matched the ones given by
 % run_sim.m well.
 
@@ -16,17 +18,12 @@ addpath('Dynamics3');
 
 params = SLIPParams;
 controller = @(xx) 0;
-% current_mode = 3;       % 1 = Stance; 2 = Flight, under; 3 = Flight, above
-% x0 = [ 0; 1.5; 1.2; 0 ];
 
-current_mode = 3;
-% x_initial = [ -1; 0.3; 0.2; 0 ];
-x_initial = [ -1; 0.3; 0.21; 0 ];
-
+current_mode = 2;
+x_initial = [ -1; 0.3; 0.17; 0.1 ];
 
 x0 = x_initial;
-% Target = -0.4;
-Target = 0.5;
+Target = -0.3;
 
 opt = [ ...     % 1 = actual, 2 = taylor expansion
         1;      % Dynamics

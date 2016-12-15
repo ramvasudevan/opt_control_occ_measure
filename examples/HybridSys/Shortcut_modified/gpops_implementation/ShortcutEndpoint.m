@@ -1,7 +1,7 @@
 %---------------------------------%
-% BEGIN: DubinsTEndpoint.m %
+% BEGIN: ShortcutEndpoint.m %
 %---------------------------------%
-function output = DubinsLQREndpoint(input)
+function output = ShortcutEndpoint(input)
 
 % Variables at Start and Terminus of Phase 1
 t01 = input.phase(1).initialtime;
@@ -20,12 +20,13 @@ x03 = input.phase(3).initialstate;
 xf3 = input.phase(3).finalstate;
 
 % Event Group 1:  Linkage Constraints Between Phases 1 and 2
-output.eventgroup(1).event = [x02-xf1, t02-tf1];
+R12 = -xf1(1).^2 + 0.5;
+output.eventgroup(1).event = [xf1(2)-1, x02-R12, t02-tf1];
 % Event Group 2:  Linkage Constraints Between Phases 2 and 3
-output.eventgroup(2).event = [x03-xf2, t03-tf2];
+R23 = [0.6, -0.8, 0];
+output.eventgroup(2).event = [xf2-1, x03-R23, t03-tf2];
 % Event Group 3:  Constraints on Terminal State
-output.eventgroup(3).event = tf3;
-
+output.eventgroup(3).event = [xf3(1)-0.8, xf3(2)+0.8];
 
 % Objective function
 objective = 0;
@@ -35,5 +36,5 @@ end
 
 output.objective = objective;
 %---------------------------------%
-% BEGIN: DubinsTEndpoint.m %
+% BEGIN: ShortcutEndpoint.m %
 %---------------------------------%

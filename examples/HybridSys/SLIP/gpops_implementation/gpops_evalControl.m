@@ -16,9 +16,10 @@ addpath('TrueDynamics');
 % x0 = [ 0.9; 0; 0; 0; 1 ];
 
 % Running:
-
-current_mode = 2;
-x0 = [ -1; 0.3; 0.17; 0.1 ];
+current_mode = 3;
+x0 = [ 0; 1.7; 1; 0 ];
+% current_mode = 1;
+% x0 = [ 0.7108; 0.2058; -0.1644; -2.2149; 1.4958 ];
 
 previous_mode = 0;
 
@@ -30,43 +31,43 @@ opt = [ ...     % 1 = actual, 2 = taylor expansion
         0;      % Reset map
        ];
 
-MaxTime = 1;
-Target = 0;
+MaxTime = 3;
+scaling = 1;
 
-% domain_size = params.domain_size;
-% scale_x = cell(3,1);
-% trans_x = cell(3,1);
+domain_size = params.domain_size;
+scale_x = cell(3,1);
+trans_x = cell(3,1);
 f = cell(3,1);
 g = cell(3,1);
-% for i = 1 : 3
-%     scale_x{i} = (domain_size{i}(:,2) - domain_size{i}(:,1)) / 2;
-%     trans_x{i} = mean(domain_size{i},2);
-% end
+for i = 1 : 3
+    scale_x{i} = (domain_size{i}(:,2) - domain_size{i}(:,1)) / 2;
+    trans_x{i} = mean(domain_size{i},2);
+end
 % Dynamics
 if opt(1)
-    f{1} = @(xx) scaling * Stance_f(xx);
-    g{1} = @(xx) scaling * Stance_g(xx);
+    f{1} = @(xx) scaling * rescale_dynamics(@(x) Stance_f(x), xx, scale_x{1}, trans_x{1}, scale_x{1});
+    g{1} = @(xx) scaling * rescale_dynamics(@(x) Stance_g(x), xx, scale_x{1}, trans_x{1}, scale_x{1});
 else
-    f{1} = @(xx) scaling * Stance_f_Approx(xx);
-    g{1} = @(xx) scaling * Stance_g_Approx(xx);
+    f{1} = @(xx) scaling * rescale_dynamics(@(x) Stance_f_Approx(x), xx, scale_x{1}, trans_x{1}, scale_x{1});
+    g{1} = @(xx) scaling * rescale_dynamics(@(x) Stance_g_Approx(x), xx, scale_x{1}, trans_x{1}, scale_x{1});
 end
-f{2} = @(xx) scaling * Flight_f(xx);
-g{2} = @(xx) scaling * Flight_g(xx);
-f{3} = @(xx) scaling * Flight_f(xx);
-g{4} = @(xx) scaling * Flight_g(xx);
+f{2} = @(xx) scaling * rescale_dynamics(@(x) Flight_f(x), xx, scale_x{2}, trans_x{2}, scale_x{2});
+g{2} = @(xx) scaling * rescale_dynamics(@(x) Flight_g(x), xx, scale_x{2}, trans_x{2}, scale_x{2});
+f{3} = @(xx) scaling * rescale_dynamics(@(x) Flight_f(x), xx, scale_x{3}, trans_x{3}, scale_x{3});
+g{3} = @(xx) scaling * rescale_dynamics(@(x) Flight_g(x), xx, scale_x{3}, trans_x{3}, scale_x{3});
 % Reset map
 if opt(3)
-    R_12 = @(xx) Reset_S2F(xx);
-    R_23 = @(xx) xx;
-    R_31 = @(xx) Reset_F2S(xx);
+    R_12 = @(xx) rescale_reset(@Reset_S2F, xx, scale_x{1}, trans_x{1}, scale_x{2}, trans_x{2});
+    R_23 = @(xx) rescale_reset(@(var) var, xx, scale_x{2}, trans_x{2}, scale_x{3}, trans_x{3});
+    R_31 = @(xx) rescale_reset(@Reset_F2S, xx, scale_x{3}, trans_x{3}, scale_x{1}, trans_x{1});
 else
-    R_12 = @(xx) Reset_S2F_Approx(xx);
-    R_23 = @(xx) xx;
-    R_31 = @(xx) Reset_F2S_Approx(xx);
+    R_12 = @(xx) rescale_reset(@Reset_S2F_Approx, xx, scale_x{1}, trans_x{1}, scale_x{2}, trans_x{2});
+    R_23 = @(xx) rescale_reset(@(var) var, xx, scale_x{2}, trans_x{2}, scale_x{3}, trans_x{3});
+    R_31 = @(xx) rescale_reset(@Reset_F2S_Approx, xx, scale_x{3}, trans_x{3}, scale_x{1}, trans_x{1});
 end
 
-controller = @(tt,xx) max(-1,min(1,double(subs(out.u{1}, [t;x{1}], [tt;xx]))));
-% controller = @(tt,xx) double(subs(out.u{1}, [t;x{1}], [tt;xx]));
+% controller = @(tt,xx) max(-1,min(1,double(subs(out.u{1}, [t;x{1}], [tt;xx]))));
+controller = @(tt,xx) gpops_control(tt,xx,output);
 
 current_time = 0;
 
@@ -74,7 +75,7 @@ P = SLIPPlot( current_mode, x0, params );
 state_hist = [];        % [ l, ldot, theta, thetadot, x, xdot, y, ydot, mode ]
 t_hist = [];
 
-% x0 = rescale_state( x0, domain_size{current_mode} );
+x0 = rescale_state( x0, domain_size{current_mode} );
 
 while current_time < MaxTime - 0.05
     disp(current_mode);
@@ -84,7 +85,7 @@ while current_time < MaxTime - 0.05
             options = odeset(options,'AbsTol',1e-9,'RelTol',1e-8);
                 [ tout, xout, event_time, event_state, event_id ] = ...
                 ode45(@(tt,xx) ( f{1}(xx) + g{1}(xx) * controller(tt,xx) ), ...
-                             (current_time : 1e-3 : MaxTime), x0, options);
+                             (current_time : 1e-2 : MaxTime), x0, options);
             % Reset
             previous_mode = current_mode;
             if ~isempty(event_id)
@@ -99,7 +100,7 @@ while current_time < MaxTime - 0.05
             current_time = tout(end);
             % Plot
             tout = tout * scaling;
-%             xout = rescale_state_back( xout, domain_size{1} );
+            xout = rescale_state_back( xout, domain_size{1} );
             t_hist = [ t_hist; tout ];
             mat = [ eye(5), nan*ones(5,3) ];
             tmp = xout*mat;
@@ -113,7 +114,7 @@ while current_time < MaxTime - 0.05
             options = odeset(options,'AbsTol',1e-9,'RelTol',1e-8);
             [ tout, xout, event_time, event_state, event_id ] = ...
                 ode45(@(tt,xx) ( f{2}(xx) ), ...
-                             (current_time : 1e-3 :  MaxTime), x0, options);
+                             (current_time : 1e-2 : MaxTime), x0, options);
             % Reset
             previous_mode = current_mode;
             if ~isempty(event_id)
@@ -125,14 +126,10 @@ while current_time < MaxTime - 0.05
                     current_mode = 3;
                 end
             end
-            if x0(3)<yR
-                x0 = R_31(x0);
-                current_mode = 1;
-            end
             current_time = tout(end);
             % Plot
             tout = tout * scaling;
-%             xout = rescale_state_back( xout, domain_size{2} );
+            xout = rescale_state_back( xout, domain_size{2} );
             t_hist = [t_hist; tout];
             mat = [ nan*ones(4,4), eye(4) ];
             state_hist = [ state_hist; xout*mat, 2*ones(length(tout),1) ];
@@ -144,7 +141,7 @@ while current_time < MaxTime - 0.05
             options = odeset(options,'AbsTol',1e-9,'RelTol',1e-8);
             [ tout, xout, event_time, event_state, event_id ] = ...
                 ode45(@(tt,xx) ( f{3}(xx) ), ...
-                             (current_time : 1e-3 : MaxTime), x0, options);
+                             (current_time : 1e-2 : MaxTime), x0, options);
             % Reset
             previous_mode = current_mode;
             if ~isempty(event_id)
@@ -159,7 +156,7 @@ while current_time < MaxTime - 0.05
             current_time = tout(end);
             % Plot
             tout = tout * scaling;
-%             xout = rescale_state_back( xout, domain_size{3} );
+            xout = rescale_state_back( xout, domain_size{3} );
             t_hist = [t_hist; tout];
             mat = [ nan*ones(4,4), eye(4) ];
             state_hist = [ state_hist; xout*mat, 3*ones(length(tout),1) ];
@@ -221,20 +218,19 @@ mode_hist       = state_hist(:,9);
 u_hist = 0 * t_hist;
 for i = 1 : length(t_hist)
     if ~isnan(l_hist(i))
-        s = [ l_hist(i); l_dot_hist(i); theta_hist(i); theta_dot_hist(i); x_hist(i) ];
+        s = rescale_state( [ l_hist(i); l_dot_hist(i); theta_hist(i); theta_dot_hist(i); x_hist(i) ], ...
+                           domain_size{1} );
         u_hist(i) = controller( t_hist(i)/scaling, s );
     else
-        u_hist(i) = nan;
+        u_hist(i) = -2;
     end
 end
 % u_hist = (u_hist + 1) / 10;
 
-figure(2);
+figure;
 plot(t_hist, u_hist);
-xlim([0,3]);
-ylim([-2,1]);
 
-%% Key frames
+% %% Key frames
 % idx_mat = diff(mode_hist);
 % idx = [ find( idx_mat > 0 ); find( idx_mat < 0 )+1];
 % idx = sort([1; idx]);
@@ -259,32 +255,13 @@ ylim([-2,1]);
 % xlim([0, 10]);
 % set(gca, 'YTick', [0 1.5]);
 
-%% Generate initial guess for gpops
-% mode_hist = mode_hist(x_hist < 0);
-% t_hist = t_hist(t_hist < 0);
-% idx_mat = diff(mode_hist);
-% idx = find( idx_mat ~= 0 );
-% cnt = 1;
-% guess(1).time = [ 0; 0 ];
-% guess(1).state = [ -1, 0.3, 0.2, 0;
-%                     0,   0, 0,   0 ];
-% for i = 1 : length(idx)
-%     guess(cnt).time(2) = t_hist(idx);
-%     guess(cnt).state(2,:) = state_hist(idx, 1:5);
-%     guess(cnt+1).time = zeros(2,0);
-%     guess(cnt+1).state = zeros()
-% end
-
-
-
-
 %% Compute the cost
 cost = 0;
 for i = 1 : length(t_hist-1)
-    if (t_hist(i) > scaling)
+    if (t_hist(i) > MaxTime)
         break;
     end
-    if (x_hist(i) > 0)
+    if (x_hist(i) > 2.5)
         break;
     end
     
