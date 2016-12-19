@@ -128,8 +128,7 @@ options.withInputs = 1;
 options.svd_eps = 1e5;
 
 % Solve
-[out] = HybridOptimalControlDualSolver1(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
-% [out] = HybridOptimalControlDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
+[out] = HybridOCPDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
 
 
 pval = scaling * out.pval;

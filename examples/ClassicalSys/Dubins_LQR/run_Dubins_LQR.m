@@ -8,7 +8,7 @@
 
 clear;
 scaling = 3;
-d = 8;
+d = 6;
 nmodes = 1;
 
 % polysin = @(x) x - x^3/6;
@@ -58,7 +58,7 @@ options.MinimumTime = 0;
 options.withInputs = 1;
 
 % Solve
-[out] = HybridOptimalControlDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
+[out] = HybridOCPDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
 
 pval = scaling * out.pval;
 disp(['LMI ' int2str(d) ' lower bound = ' num2str(pval)]);
@@ -92,14 +92,9 @@ plot([0,tval(end)],[1,1],'k');
 ylim([0,1.1]);
 xlabel('$t$','Interpreter','LaTex','FontSize',20);
 ylabel('$V(t)$','Interpreter','LaTex','FontSize',20);
-% hl1 = legend('Our control $V$','Optimal $V$');
-% set(hl1,'Interpreter','latex')
 subplot(1,2,2);
 hold on;
 plot(tval,uval(:,2),'LineWidth',4);
-plot([0, theta/omega, theta/omega, tval(end)-theta/omega, tval(end)-theta/omega, tval(end)], [-1,-1,0,0,1,1],'k');
-% hl2 = legend('Our control $\omega$', 'Optimal $\omega$');
-% set(hl2,'Interpreter','latex');
 xlabel('$t$','Interpreter','LaTex','FontSize',20);
 ylabel('$\omega(t)$','Interpreter','LaTex','FontSize',20);
 

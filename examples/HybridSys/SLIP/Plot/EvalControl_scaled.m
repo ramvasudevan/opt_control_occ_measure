@@ -5,11 +5,6 @@
 
 % close all;
 
-addpath('Utils');
-addpath('PolyDynamics');
-addpath('TrueDynamics');
-% addpath('Dynamics3');
-
 % scaling = 8;
 % % Jumping:
 % current_mode = 1;
@@ -17,17 +12,19 @@ addpath('TrueDynamics');
 
 % Running:
 
-current_mode = 2;
-x0 = [ -1; 0.3; 0.17; 0.1 ];
+% current_mode = 2;
+% x0 = [ -1; 0.3; 0.17; 0.1 ];
+current_mode = 3;
+x0 = [ -1; 0.3; 0.2; 0 ];
 
 previous_mode = 0;
 
 % params = SLIPParams;
 
 opt = [ ...     % 1 = actual, 2 = taylor expansion
-        0;      % Dynamics
-        0;      % Guard
-        0;      % Reset map
+        1;      % Dynamics
+        1;      % Guard
+        1;      % Reset map
        ];
 
 MaxTime = 1;
@@ -232,7 +229,7 @@ end
 figure(2);
 plot(t_hist, u_hist);
 xlim([0,3]);
-ylim([-2,1]);
+ylim([-2,2]);
 
 %% Key frames
 % idx_mat = diff(mode_hist);
@@ -280,7 +277,7 @@ ylim([-2,1]);
 
 %% Compute the cost
 cost = 0;
-for i = 1 : length(t_hist-1)
+for i = 1 : length(t_hist)-1
     if (t_hist(i) > scaling)
         break;
     end
@@ -290,11 +287,13 @@ for i = 1 : length(t_hist-1)
     
     if mode_hist(i) == 1
         
-        cost = cost + (t_hist(i+1) - t_hist(i)) * 1;
+%         cost = cost + (t_hist(i+1) - t_hist(i)) * 1;
+        cost = cost + l_hist(i) * (t_hist(i+1) - t_hist(i));
         
     elseif mode_hist(i) > 1
     
-        cost = cost + (t_hist(i+1) - t_hist(i)) * 1;
+%         cost = cost + (t_hist(i+1) - t_hist(i)) * 1;
+        cost = cost + y_hist(i) * (t_hist(i+1) - t_hist(i));
         
     else
         

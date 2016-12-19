@@ -9,10 +9,10 @@
 clear;
 close all;
 
-addpath('Utils');
-addpath('PolyDynamics');
-addpath('TrueDynamics');
-addpath('Dynamics3');
+% addpath('Utils');
+% addpath('PolyDynamics');
+% addpath('TrueDynamics');
+% addpath('Dynamics3');
 
 params = SLIPParams;
 controller = @(xx) 0;
@@ -20,13 +20,11 @@ controller = @(xx) 0;
 % x0 = [ 0; 1.5; 1.2; 0 ];
 
 current_mode = 3;
-% x_initial = [ -1; 0.3; 0.2; 0 ];
-x_initial = [ -1; 0.3; 0.21; 0 ];
+x_initial = [ -1; 0.3; 0.20; 0 ];
 
 
 x0 = x_initial;
-% Target = -0.4;
-Target = 0.5;
+Target = -0.54;
 
 opt = [ ...     % 1 = actual, 2 = taylor expansion
         1;      % Dynamics
@@ -35,7 +33,7 @@ opt = [ ...     % 1 = actual, 2 = taylor expansion
        ];
 flag_draw = 1;
 
-MaxTime = 8;
+MaxTime = 4;
 current_time = 0;
 
 if flag_draw, P = SLIPPlot( current_mode, x0, params ); end

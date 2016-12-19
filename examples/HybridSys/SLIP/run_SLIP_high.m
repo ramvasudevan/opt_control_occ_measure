@@ -10,8 +10,8 @@ addpath('PolyDynamics');
 addpath('TrueDynamics');
 addpath('Plot');
 
-d = 6;
-scaling = 6;
+d = 4;
+scaling = 3;
 nmodes = 3;
 % Target = -0.4;
 Target = 0;
@@ -70,7 +70,7 @@ sX{1,2} = [ -(l0 - y(1))^2;                     % l = l0
              domain_size{2}(:,2) - R{1,2};      % R(i,j) \subset X_j
              R{1,2} - domain_size{2}(:,1) ];
 % h{1} = (u{1}+1)^2;
-h{1} = u{1};
+h{1} = -x{ 1 }( 1 );
 H{1} = 0;
 
 % Mode 2 : Flight 1
@@ -82,7 +82,7 @@ sX{2,3} = [ -y(4)^2;                             % y_dot = 0
             hX{2};                               % G \subset X
             domain_size{3}(:,2) - R{2,3};        % R(i,j) \subset X_j
             R{2,3} - domain_size{3}(:,1) ];
-h{2} = 0;
+h{2} = -x{ 2 }( 3 );
 H{2} = 0;
 
 % Mode 3 : Flight 2
@@ -94,18 +94,21 @@ sX{3,1} = [ -(y(3) - yR)^2;                       % y = yR
             hX{3};
             domain_size{1}(:,2) - R{3,1};
             R{3,1} - domain_size{1}(:,1) ];
-h{3} = 0;
+h{3} = -x{ 3 }( 3 );
 H{3} = 0;
 
 % Initial condition and target point
 x0{3} = [ -1; 0.3; 0.20; 0 ];
 
-hXT{1} = [ x{1}(5) - Target; hX{1} ];
-hXT{2} = [ x{2}(1) - Target; hX{2} ];
-hXT{3} = [ x{3}(1) - Target; hX{3} ];
+% hXT{1} = [ x{1}(5) - Target; hX{1} ];
+% hXT{2} = [ x{2}(1) - Target; hX{2} ];
+% hXT{3} = [ x{3}(1) - Target; hX{3} ];
+hXT{1} = hX{1};
+hXT{2} = hX{2};
+hXT{3} = hX{3};
 
 % Options
-options.MinimumTime = 1;
+options.freeFinalTime = 0;
 options.withInputs = 1;
 options.svd_eps = 1e4;
 

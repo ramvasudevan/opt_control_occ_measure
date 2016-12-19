@@ -41,7 +41,7 @@ options.MinimumTime = 0;
 options.withInputs = 1;
 
 % Solve
-[out] = HybridOptimalControlDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
+[out] = HybridOCPDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
 
 pval = scaling * out.pval;
 disp(['LMI ' int2str(d) ' lower bound = ' num2str(pval)]);

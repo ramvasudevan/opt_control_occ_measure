@@ -1,8 +1,8 @@
 % Double integrator - Minimum Time
 
 clear;
-scaling = 5;
-d = 12;
+scaling = 15;
+d = 6;
 nmodes = 2;
 r2 = 0.3;
 
@@ -61,8 +61,7 @@ options.withInputs = 1;
 options.svd_eps = 1e4;
 
 % Solve
-[out] = HybridOptimalControlDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
-% [out] = HybridOptimalControlDualSolver1(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
+[out] = HybridOCPDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
 
 pval = scaling * out.pval;
 

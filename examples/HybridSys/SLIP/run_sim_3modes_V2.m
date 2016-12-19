@@ -20,10 +20,10 @@ params = SLIPParams;
 controller = @(xx) 0;
 
 current_mode = 2;
-x_initial = [ -1; 0.3; 0.17; 0.1 ];
+x_initial = [ -1; 0.3; 0.2; 0.1 ];
 
 x0 = x_initial;
-Target = -0.3;
+Target = -0.5;
 
 opt = [ ...     % 1 = actual, 2 = taylor expansion
         1;      % Dynamics

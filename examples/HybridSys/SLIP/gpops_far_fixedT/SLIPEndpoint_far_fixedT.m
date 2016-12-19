@@ -1,13 +1,13 @@
-%---------------------------------%
-% BEGIN: SLIPEndpoint.m %
-%---------------------------------%
-function output = SLIPEndpoint(input)
+%-----------------------------------%
+% BEGIN: SLIPEndpoint_high_fixedT.m %
+%-----------------------------------%
+function output = SLIPEndpoint_far_fixedT(input)
 
 nphases = input.auxdata.nphases;
 l0 = input.auxdata.l0;
 yR = input.auxdata.yR;
-Target = input.auxdata.Target;
 offset = input.auxdata.init;
+T = input.auxdata.T;
 polyflag = 0;
 
 % Events
@@ -15,7 +15,7 @@ for iphase = 1 : nphases-1
     idx = mod(iphase+offset,3) + 1;
     
     switch idx
-        case 1
+        case 1      % Stance phase
             tf1 = input.phase(iphase).finaltime;
             xf1 = input.phase(iphase).finalstate;
             t02 = input.phase(iphase+1).initialtime;
@@ -34,7 +34,7 @@ for iphase = 1 : nphases-1
             
             % The bounds should be: (0, zeros(1,4), 0, 0) ~ (0, zeros(1,4), 0, ldotmax)
             
-        case 2
+        case 2      % Flight phase 1
             tf1 = input.phase(iphase).finaltime;
             xf1 = input.phase(iphase).finalstate;
             t02 = input.phase(iphase+1).initialtime;
@@ -48,7 +48,7 @@ for iphase = 1 : nphases-1
             
             % The bounds should be: (0, zeros(1,4), 0) ~ itself
             
-        case 3
+        case 3      % Flight phase 2
             tf1 = input.phase(iphase).finaltime;
             xf1 = input.phase(iphase).finalstate;
             t02 = input.phase(iphase+1).initialtime;
@@ -72,15 +72,8 @@ end
 
 % Terminal condition
 iphase = nphases;
-xf1 = input.phase(iphase).finalstate;
-idx = mod(iphase+offset,3) + 1;
-switch idx
-    case 1
-        output.eventgroup(iphase).event = [ xf1(5) - Target ];
-    case {2,3}
-        output.eventgroup(iphase).event = [ xf1(1) - Target ];
-end
-% The bounds should be: 0~infty (or, maybe, 0~1000)
+tf1 = input.phase(iphase).finaltime;
+output.eventgroup(iphase).event = [ tf1 - T ];
 
 % Objective function
 objective = 0;

@@ -8,7 +8,7 @@
 
 clear;
 scaling = 3;
-d = 6;
+d = 8;
 nmodes = 1;
 
 % polysin = @(x) x - x^3/6;
@@ -56,9 +56,10 @@ H{1} = 0;
 % Options
 options.MinimumTime = 1;
 options.withInputs = 1;
+options.svd_eps = 1e4;
 
 % Solve
-[out] = HybridOptimalControlDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
+[out] = HybridOCPDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
 
 pval = scaling * out.pval;
 disp(['LMI ' int2str(d) ' lower bound = ' num2str(pval)]);

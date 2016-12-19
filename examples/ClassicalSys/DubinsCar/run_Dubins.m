@@ -36,9 +36,11 @@ H = 0;
 % options
 options.MinimumTime = 1;
 options.withInputs = 1;
+options.svd_eps = 1e5;
 
 % Solve
-[out] = OCP_Controller_Dual( t, x, u, f, g, x0, hX, hXT, h, H, degree, options );
+[out] = OCPDualSolver( t, x, u, f, g, x0, hX, hXT, h, H, degree, options );
+
 
 pval = scaling * out.pval;
 disp(['LMI ' int2str(degree) ' lower bound = ' num2str(pval)]);

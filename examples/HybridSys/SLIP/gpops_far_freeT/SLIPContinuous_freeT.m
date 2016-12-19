@@ -1,7 +1,7 @@
 %-----------------------------------%
 % BEGIN: SLIPContinuous.m %
 %-----------------------------------%
-function phaseout = SLIPContinuous(input)
+function phaseout = SLIPContinuous_freeT(input)
 
 nphases = input.auxdata.nphases;
 phaseout = struct('dynamics',cell(1,nphases),'integrand',cell(1,nphases));
@@ -18,12 +18,16 @@ for iphase = 1 : nphases
     switch idx
         case 1          % Stance phase
 %             phaseout(iphase).dynamics = ( Stance_f_Approx(x1') + Stance_g_Approx(x1') * u1' )';
+%             keyboard;
             phaseout(iphase).dynamics = ( Stance_f(x1') + Stance_g_Approx(x1') * u1' )';
-            phaseout(iphase).integrand = ones(n1,1);
+%             phaseout(iphase).integrand = ones(n1,1);
 %             phaseout(iphase).integrand = (u1+1).^2;
+            phaseout(iphase).integrand = -x1(:,1);
         case {2,3}      % Flight 1
+%             keyboard;
             phaseout(iphase).dynamics = ( Flight_f(x1') )';
-            phaseout(iphase).integrand = ones(n1,1);
+%             phaseout(iphase).integrand = ones(n1,1);
+            phaseout(iphase).integrand = -x1(:,3);
         otherwise
             disp('Something Wrong!!!');
     end

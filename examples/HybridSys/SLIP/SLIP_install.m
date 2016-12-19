@@ -3,9 +3,10 @@
 maindir = pwd;
 s = filesep;
 
+addpath(pwd);
 addpath('Utils');
 addpath('PolyDynamics');
 addpath('TrueDynamics');
 addpath('Plot');
 
-addpath('gpops_implementation');
+addpath('gpops_high_fixedT');

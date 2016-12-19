@@ -2,7 +2,7 @@
 
 clear;
 scaling = 5;
-d = 6;
+d = 8;
 nmodes = 2;
 r2 = 0.3;
 
@@ -59,8 +59,7 @@ options.withInputs = 1;
 options.svd_eps = 1e4;
 
 % Solve
-[out] = HybridOptimalControlDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
-% [out] = HybridOptimalControlDualSolver1(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
+[out] = HybridOCPDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
 
 pval = scaling * out.pval;
 
@@ -97,10 +96,10 @@ ode_options = odeset('Events',@EventFcn);
                        [0:0.001:0.75], [xs0; 0], ode_options );
 h_traj = plot(xval(:,1), xval(:,2),'LineWidth',2);
 % Actual optimal trajectory
-[ ~, xvalA1 ] = ode45(@(tt,xx) DIEq_optimal( tt, xx, xs0 ), [0:0.001:xs0(2) + sqrt( xs0(1) + xs0(2)^2/2 )], xs0 );
-[ ~, xvalA2 ] = ode45(@(tt,xx) DIEq_optimal( tt, xx, xs0 ), [xs0(2) + sqrt( xs0(1) + xs0(2)^2/2 ):0.001: 0.6*scaling], xvalA1(end,:));
-xvalA1 = [xvalA1;xvalA2];
-h_traj2 = plot(xvalA1(:,1), xvalA1(:,2), 'k--');
+% [ ~, xvalA1 ] = ode45(@(tt,xx) DIEq_optimal( tt, xx, xs0 ), [0:0.001:xs0(2) + sqrt( xs0(1) + xs0(2)^2/2 )], xs0 );
+% [ ~, xvalA2 ] = ode45(@(tt,xx) DIEq_optimal( tt, xx, xs0 ), [xs0(2) + sqrt( xs0(1) + xs0(2)^2/2 ):0.001: 0.6*scaling], xvalA1(end,:));
+% xvalA1 = [xvalA1;xvalA2];
+% h_traj2 = plot(xvalA1(:,1), xvalA1(:,2), 'k--');
 
 % plot([-1,1.5],[-1,-1],'k');
 plot(x0{2}(1),x0{2}(2),'Marker','o','MarkerEdgeColor',[0 0.4470 0.7410]);
@@ -113,7 +112,7 @@ set(gca, 'FontSize', 20);
 xlabel('$x_1$','Interpreter','LaTex','FontSize',30);
 ylabel('$x_2$','Interpreter','LaTex','FontSize',30);
 box on;
-legend([h_area(2) h_area2(2) h_traj h_traj2], {'Mode 1', 'Mode 2', 'Trajectory under extracted control law', 'Optimal trajectory'});
+% legend([h_area(2) h_area2(2) h_traj h_traj2], {'Mode 1', 'Mode 2', 'Trajectory under extracted control law', 'Optimal trajectory'});
 
 [~,idx] = find( id_event == 2 );
 tcross = scaling * time_event( idx(1) );
