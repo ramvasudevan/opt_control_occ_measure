@@ -1,14 +1,15 @@
 %-----------------------------------%
 % BEGIN: SLIPEndpoint_high_fixedT.m %
 %-----------------------------------%
-function output = SLIPEndpoint_far_fixedT(input)
+function output = SLIPEndpoint_constV2_fixedT(input)
 
 nphases = input.auxdata.nphases;
+params = input.auxdata.params;
 l0 = input.auxdata.l0;
 yR = input.auxdata.yR;
 offset = input.auxdata.init;
 T = input.auxdata.T;
-polyflag = 0;
+polyflag = 1;
 
 % Events
 for iphase = 1 : nphases-1
@@ -23,10 +24,10 @@ for iphase = 1 : nphases-1
             
             % Linkage constraints from stance to flight 1 (Take-off)
             % Guard: l = lmax, ldot >= 0
-            G = [ xf1(1) - l0, xf1(2) ];
+            G = [ xf1(1) - l0, xf1(2) ] * 1;
             % Reset: R
             if polyflag
-                R = ( Reset_S2F_Approx( xf1' ) )';
+                R = ( Reset_S2F_Approx( xf1', params ) )';
             else
                 R = ( Reset_S2F( xf1' ) )';
             end
@@ -56,10 +57,10 @@ for iphase = 1 : nphases-1
             
             % Linkage constraints from flight 2 to stance (Touch-down)
             % Guard: y = yR
-            G = xf1(3) - yR;
+            G = (xf1(3) - yR) * 1;
             % Reset: R
             if polyflag
-                R = ( Reset_F2S_Approx( xf1' ) )';
+                R = ( Reset_F2S_Approx( xf1', params ) )';
             else
                 R = ( Reset_F2S( xf1' ) )';
             end

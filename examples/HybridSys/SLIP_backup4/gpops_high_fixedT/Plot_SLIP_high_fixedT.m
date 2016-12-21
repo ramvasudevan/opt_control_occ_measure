@@ -38,3 +38,7 @@ plot(x_state, y_state);
 figure(2);
 hold on;
 plot(tval, control)
+
+figure(3);
+hold on;
+plot(tval, y_state);

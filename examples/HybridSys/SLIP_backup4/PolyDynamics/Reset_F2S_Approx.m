@@ -1,8 +1,12 @@
-function [ R ] = Reset_F2S_Approx( x, params )
-% we are not approximating cos(alpha) or sin(alpha).
+function [ R ] = Reset_F2S_Approx(x,~)
+% This function is the same as Reset_F2S.m, i.e.,
+% we don't need to approximate cos(alpha) or sin(alpha).
+params = SLIPParams;
 alpha = params.alpha;
 l0 = params.l0;
 
+% polysin = @(x) x;
+% polycos = @(x) 1 - x^2/2;
 polysin = @(xx) sin(xx);
 polycos = @(xx) cos(xx);
 

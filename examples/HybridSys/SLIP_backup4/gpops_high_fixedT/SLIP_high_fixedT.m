@@ -9,8 +9,8 @@ clc;
 %-------------------------------------------------------------------------%
 %--------------- Provide All Physical Data for Problem -------------------%
 %-------------------------------------------------------------------------%
-nphases = 3;
-T = 1;
+nphases = 7;
+T = 5;
 x0 = [ -1, 0.3, 0.2, 0 ];
 offset = 1;             % Initial mode: mode 3 = 1, mode 2 = 0, mode 1 = 2
 
@@ -63,8 +63,9 @@ for iphase = 1 : nphases
         bounds.phase(iphase).control.lower = -1;
         bounds.phase(iphase).control.upper = 1;
     end
-    bounds.phase(iphase).integral.lower = 0;
+    bounds.phase(iphase).integral.lower = -100000;
     bounds.phase(iphase).integral.upper = 100000;
+    
 end
 
 for iphase = 1 : nphases-1
@@ -99,17 +100,18 @@ bounds.eventgroup(iphase).upper = 1000;
 %----------Provide Mesh Refinement Method and Initial Mesh ---------------%
 %-------------------------------------------------------------------------%
 mesh.method          = 'hp-LiuRao-Legendre';
-mesh.tolerance       = 1e-5;
+% mesh.maxiterations   = 45;
+mesh.tolerance       = 1e-7;
 for i = 1 : nphases
-    mesh.phase(i).colpoints = 4 * ones(1,10);
-    mesh.phase(i).fraction = 0.1 * ones(1,10);
+    mesh.phase(i).colpoints = 10 * ones(1,100);
+    mesh.phase(i).fraction = 0.01 * ones(1,100);
 end
 
 
 %-------------------------------------------------------------------------%
 %------------- Assemble Information into Problem Structure ---------------%        
 %-------------------------------------------------------------------------%
-setup.name                           = 'SLIP_far_minimum_time';
+setup.name                           = 'SLIP_high_fixedT';
 setup.functions.continuous           = @SLIPContinuous_high_fixedT;
 setup.functions.endpoint             = @SLIPEndpoint_high_fixedT;
 setup.displaylevel                   = 2;
@@ -118,13 +120,13 @@ setup.guess                          = guess;
 setup.auxdata                        = auxdata;
 setup.mesh                           = mesh;
 setup.nlp.solver                     = 'ipopt';
-setup.nlp.snoptoptions.tolerance     = 1e-10;
-setup.nlp.snoptoptions.maxiterations = 20000;
+setup.nlp.ipoptoptions.maxiterations = 200;
 setup.nlp.ipoptoptions.linear_solver = 'ma57';
 setup.nlp.ipoptoptions.tolerance     = 1e-10;
 % setup.derivatives.supplier           = 'adigator';
-% setup.derivatives.derivativelevel    = 'second';
+setup.derivatives.derivativelevel    = 'second';
 setup.method                         = 'RPM-Differentiation';
+% setup.scales.method                  = 'automatic-hybridUpdate';
 
 
 %-------------------------------------------------------------------------%

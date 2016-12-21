@@ -1,4 +1,5 @@
-function [out] = Stance_g_Approx( ~, params )
+function [out] = Stance_g_Approx(~)
+params = SLIPParams;
 k = params.k;
 m = params.m;
 umax = params.umax;

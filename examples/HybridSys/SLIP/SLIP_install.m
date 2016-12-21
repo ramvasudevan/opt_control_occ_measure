@@ -4,9 +4,11 @@ maindir = pwd;
 s = filesep;
 
 addpath(pwd);
-addpath('Utils');
 addpath('PolyDynamics');
-addpath('TrueDynamics');
 addpath('Plot');
+addpath('Utils');
+addpath('EventFuncs');
 
-addpath('gpops_high_fixedT');
+addpath('Gpops_SLIP_high');
+addpath('Gpops_SLIP_constV1');
+addpath('Gpops_SLIP_constV2');

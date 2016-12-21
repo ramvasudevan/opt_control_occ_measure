@@ -20,11 +20,11 @@ controller = @(xx) 0;
 % x0 = [ 0; 1.5; 1.2; 0 ];
 
 current_mode = 3;
-x_initial = [ -1; 0.3; 0.20; 0 ];
+x_initial = [ -1; 0.3; 0.2; 0 ];
 
 
 x0 = x_initial;
-Target = -0.54;
+Target = -0.4;
 
 opt = [ ...     % 1 = actual, 2 = taylor expansion
         1;      % Dynamics
@@ -164,7 +164,7 @@ idx_mat = diff(mode_hist);
 idx = find( idx_mat ~= 0 );
 
 
-% Construct 'guess'
+%% Construct 'guess'
 guess.phase(1).time = 0;
 guess.phase(1).state = x_initial';
 
@@ -203,31 +203,3 @@ end
 guess.phase(i).integral = guess.phase(i).time(2) - guess.phase(i).time(1);
 
 
-% figure;
-% plot(t_hist, x_dot_hist,'LineWidth',2);
-% title('x dot');
-% 
-% figure;
-% plot(t_hist, y_hist, 'LineWidth', 2);
-% title('y');
-
-% 
-% figure;
-% plot(t_hist, y_dot_hist, 'LineWidth',2);
-% title('y dot');
-% 
-% figure;
-% plot(t_hist, theta_hist, 'LineWidth', 2);
-% title('theta');
-% 
-% figure;
-% plot(t_hist, theta_dot_hist, 'LineWidth', 2);
-% title('theta dot');
-% 
-% figure;
-% plot(t_hist, l_hist, 'LineWidth', 2);
-% title('l');
-% 
-% figure;
-% plot(t_hist, l_dot_hist, 'LineWidth', 2);
-% title('l dot');
