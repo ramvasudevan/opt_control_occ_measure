@@ -21,7 +21,7 @@ opt = [ ...     % 1 = actual, 2 = taylor expansion
 
 MaxTime = 1;
 
-domain_size = params.domain_size;
+domain_size = params.domain;
 scale_x = cell(3,1);
 trans_x = cell(3,1);
 f = cell(3,1);
@@ -32,16 +32,16 @@ for i = 1 : 3
 end
 % Dynamics
 if opt(1)
-    f{1} = @(xx) scaling * rescale_dynamics(@(x) Stance_f(x), xx, scale_x{1}, trans_x{1}, scale_x{1});
-    g{1} = @(xx) scaling * rescale_dynamics(@(x) Stance_g(x), xx, scale_x{1}, trans_x{1}, scale_x{1});
+    f{1} = @(xx) T * rescale_dynamics(@(x) Stance_f(x), xx, scale_x{1}, trans_x{1}, scale_x{1});
+    g{1} = @(xx) T * rescale_dynamics(@(x) Stance_g(x), xx, scale_x{1}, trans_x{1}, scale_x{1});
 else
-    f{1} = @(xx) scaling * rescale_dynamics(@(x) Stance_f_Approx(x), xx, scale_x{1}, trans_x{1}, scale_x{1});
-    g{1} = @(xx) scaling * rescale_dynamics(@(x) Stance_g_Approx(x), xx, scale_x{1}, trans_x{1}, scale_x{1});
+    f{1} = @(xx) T * rescale_dynamics(@(x) Stance_f_Approx(x), xx, scale_x{1}, trans_x{1}, scale_x{1});
+    g{1} = @(xx) T * rescale_dynamics(@(x) Stance_g_Approx(x), xx, scale_x{1}, trans_x{1}, scale_x{1});
 end
-f{2} = @(xx) scaling * rescale_dynamics(@(x) Flight_f(x), xx, scale_x{2}, trans_x{2}, scale_x{2});
-g{2} = @(xx) scaling * rescale_dynamics(@(x) Flight_g(x), xx, scale_x{2}, trans_x{2}, scale_x{2});
-f{3} = @(xx) scaling * rescale_dynamics(@(x) Flight_f(x), xx, scale_x{3}, trans_x{3}, scale_x{3});
-g{3} = @(xx) scaling * rescale_dynamics(@(x) Flight_g(x), xx, scale_x{3}, trans_x{3}, scale_x{3});
+f{2} = @(xx) T * rescale_dynamics(@(x) Flight_f(x), xx, scale_x{2}, trans_x{2}, scale_x{2});
+g{2} = @(xx) T * rescale_dynamics(@(x) Flight_g(x), xx, scale_x{2}, trans_x{2}, scale_x{2});
+f{3} = @(xx) T * rescale_dynamics(@(x) Flight_f(x), xx, scale_x{3}, trans_x{3}, scale_x{3});
+g{3} = @(xx) T * rescale_dynamics(@(x) Flight_g(x), xx, scale_x{3}, trans_x{3}, scale_x{3});
 % Reset map
 if opt(3)
     R_12 = @(xx) rescale_reset(@Reset_S2F, xx, scale_x{1}, trans_x{1}, scale_x{2}, trans_x{2});
@@ -60,7 +60,7 @@ current_time = 0;
 state_hist = [];        % [ l, ldot, theta, thetadot, x, xdot, y, ydot, mode ]
 t_hist = [];
 
-x0 = rescale_state( x0, domain_size{current_mode} );
+% x0 = rescale_state( x0, domain_size{current_mode} );
 
 while current_time < MaxTime - 0.05
     disp(current_mode);
@@ -83,8 +83,8 @@ while current_time < MaxTime - 0.05
             end
             current_time = tout(end);
             % Plot
-            tout = tout * scaling;
-            xout = rescale_state_back( xout, domain_size{1} );
+            tout = tout * T;
+%             xout = rescale_state_back( xout, domain_size{1} );
             t_hist = [ t_hist; tout ];
             mat = [ eye(5), nan*ones(5,3) ];
             tmp = xout*mat;
@@ -109,8 +109,8 @@ while current_time < MaxTime - 0.05
             end
             current_time = tout(end);
             % Plot
-            tout = tout * scaling;
-            xout = rescale_state_back( xout, domain_size{2} );
+            tout = tout * T;
+%             xout = rescale_state_back( xout, domain_size{2} );
             t_hist = [t_hist; tout];
             mat = [ nan*ones(4,4), eye(4) ];
             state_hist = [ state_hist; xout*mat, 2*ones(length(tout),1) ];
@@ -133,8 +133,8 @@ while current_time < MaxTime - 0.05
             end
             current_time = tout(end);
             % Plot
-            tout = tout * scaling;
-            xout = rescale_state_back( xout, domain_size{3} );
+            tout = tout * T;
+%             xout = rescale_state_back( xout, domain_size{3} );
             t_hist = [t_hist; tout];
             mat = [ nan*ones(4,4), eye(4) ];
             state_hist = [ state_hist; xout*mat, 3*ones(length(tout),1) ];
@@ -166,7 +166,7 @@ mode_hist       = state_hist(:,9);
 %     if ~isnan(l_hist(i))
 %         s = rescale_state( [ l_hist(i); l_dot_hist(i); theta_hist(i); theta_dot_hist(i); x_hist(i) ], ...
 %                            domain_size{1} );
-%         u_hist(i) = controller( t_hist(i)/scaling, s );
+%         u_hist(i) = controller( t_hist(i)/T, s );
 %     else
 %         u_hist(i) = nan;
 %     end
@@ -181,7 +181,7 @@ hold on;
 idx_mat = mode_hist(2:end) - mode_hist(1:end-1);
 idx = [ find( idx_mat > 0 ); find( idx_mat < 0 )+1];
 idx = [1; idx];
-springcoord( [ 0, 0 ] , [ 0, params.l0 ], 5, 1.5, 0.2);
+springcoord( [ 0, 0 ] , [ 0, params.l0 ], 5, 0.3, 0.04);
 plot( h_2d, x_hist, y_hist, '-.');
 for i = 1 : length(idx)
     j = idx(i);
@@ -195,8 +195,9 @@ for i = 1 : length(idx)
     PlotFrame(state_hist(j,:),params,xv,yv,h_2d);
 end
 axis equal
-ylim([0, 1.5]);
-xlim([0,10]);
+ylim([0, 0.3]);
+xlim([-1,1]);
+box on;
 set(h_2d, 'YTick', [0 1.5]);
 
 %% Make movies
@@ -208,7 +209,7 @@ for i = 1 : length(t_hist)
     PlotFrame(state_hist(i,:),params,[],[],gca);
     axis equal
     ylim([0,1.5]);
-    xlim([0,10]);
+    xlim([-1,1]);
     set(gca, 'YTick', [0 1.5]);
     set(gca, 'XTick', 0:2:10);
     xlabel('x');

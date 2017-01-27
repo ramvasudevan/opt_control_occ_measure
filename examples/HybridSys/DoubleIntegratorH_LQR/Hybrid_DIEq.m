@@ -9,4 +9,4 @@ end
 
 xdot = [ xval(2);
          uval;
-         J(xval) ];
+         J(xval,uval) ];

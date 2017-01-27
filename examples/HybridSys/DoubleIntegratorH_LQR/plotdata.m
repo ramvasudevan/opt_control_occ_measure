@@ -7,7 +7,7 @@ disp(['Processing ',filename]);
 figure(1);
 controller = [ out.u{1}; out.u{2} ];
 ode_options = odeset('Events',@EventFcn);
-[ tval, xval, time_event, ~, id_event ] = ode45(@(tt,xx) scaling * Hybrid_DIEq( tt, xx, controller, @(x) 1, [t;x{1}] ), ...
+[ tval, xval, time_event, ~, id_event ] = ode45(@(tt,xx) scaling * Hybrid_DIEq( tt, xx, controller, @(xx,uu) xx'*xx+20*uu^2, [t;x{1}] ), ...
                        [0:0.001:1], [xs0; 0], ode_options );
 plot(xval(:,1), xval(:,2),'LineWidth',mythick,'color',mycolor);
 
@@ -27,4 +27,5 @@ for i = 1 : length(tval)
         uval(i) = double(subs(controller(2), [t;x{1}], [tval(i);xval(i,1:2)']));
     end
 end
+disp(['Cost of ', filename, ' from simulation is ', num2str(xval(end,end))]);
 plot(tval*scaling, uval,'LineWidth',mythick,'color',mycolor);

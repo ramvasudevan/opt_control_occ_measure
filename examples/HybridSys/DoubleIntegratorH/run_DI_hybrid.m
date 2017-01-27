@@ -2,7 +2,7 @@
 
 clear;
 scaling = 5;
-d = 8;
+d = 10;
 nmodes = 2;
 r2 = 0.3;
 

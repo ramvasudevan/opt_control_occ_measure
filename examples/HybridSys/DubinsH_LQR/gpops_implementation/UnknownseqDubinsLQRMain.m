@@ -55,6 +55,6 @@ for i = 1 : 7
     sol{i} = DubinsLQR_helper(i, seq, domain, x0, guess_helper);
 %     pause;
 end
-toc;
+gpops_time = toc;
 
 

@@ -1,6 +1,7 @@
 function tcross = plotdata(filename,r2,scaling,mythick,mycolor)
 
 load(filename);
+disp(['Processing ', filename]);
 
 % trajectory
 figure(1);

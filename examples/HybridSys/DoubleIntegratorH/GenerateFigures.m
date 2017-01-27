@@ -61,9 +61,9 @@ box on;
 
 %% Plot our result
 tc1 = plotdata('d12_1e4',r2,scaling,  3,  [.702,0,0]);
-tc2 = plotdata('d8_1e4',r2,scaling,   2,  [.890,.290,.2]);
-tc3 = plotdata('d6_1e4',r2,scaling,   1,  [.988,.553,.349]);
+% tc2 = plotdata('d8_1e4',r2,scaling,   2,  [.890,.290,.2]);
+% tc3 = plotdata('d6_1e4',r2,scaling,   1,  [.988,.553,.349]);
 
-tcross = 1/3*( tc1 + tc2 + tc3 )*scaling;
+tcross = 1/3*( tc1 + tc2 + tc3 )*scaling-0.03;
 figure(2);
 plot( [tcross,tcross], [-1.5,1.5],'-k','LineWidth',1 );

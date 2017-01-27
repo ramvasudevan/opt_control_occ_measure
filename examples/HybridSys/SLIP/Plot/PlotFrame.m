@@ -13,8 +13,8 @@ end
 
 % Mass
 th = 0:pi/50:2*pi;
-xvec = state(5) + 0.1*cos(th);
-yvec = state(7) + 0.1*sin(th);
+xvec = state(5) + 0.02*cos(th);
+yvec = state(7) + 0.02*sin(th);
 patch(xvec, yvec, 1, 'FaceColor', [0.8,0.8,0.8]);
 
 % Spring
@@ -27,6 +27,6 @@ end
 
 % Velocity
 if ~isempty(xv)
-    quiver(h_2d, Mpos(1), Mpos(2), 0.25*xv, 0.25*yv, 'color', 'red', 'MaxHeadSize', 1.5);
+    quiver(h_2d, Mpos(1), Mpos(2), 0.07*xv, 0.07*yv, 'color', 'red', 'MaxHeadSize', 1);
 end
 

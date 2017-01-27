@@ -3,6 +3,7 @@ clear;
 close all;
 
 T = 15;
+% T = 5;
 nSoln = 501;
 r2 = 0.3;
 
@@ -76,14 +77,14 @@ box on;
 disp(['Optimal cost = ', num2str(xval(end,end))]);
 
 %% Plot our result
-% tc1 = plotdata('d12_1e4_T5',r2,T,  3,  [.702,0,0]);
-% tc2 = plotdata('d8_1e4_T5',r2,T,   2,  [.890,.290,.2]);
-% tc3 = plotdata('d6_1e4_T5',r2,T,   1,  [.988,.553,.349]);
-
 tc1 = plotdata('d12_1e4_T15',r2,T,  3,  [.702,0,0]);
-% tc2 = plotdata('d8_1e4_T15',r2,T,   3,  [.890,.290,.2]);
-% tc3 = plotdata('d6_1e4_T15',r2,T,   2,  [.988,.553,.349]);
-% tcross = 1/3*( tc1 + tc2 + tc3 )*T;
-tcross = tc1*T-0.2;
-figure(2);
-plot( [tcross,tcross], [-1.5,1.5],'-k','LineWidth',1 );
+tc2 = plotdata('d8_1e4_T15',r2,T,   2,  [.890,.290,.2]);
+tc3 = plotdata('d6_1e4_T15',r2,T,   1,  [.988,.553,.349]);
+
+% tc1 = plotdata('d12_1e4_T15',r2,T,  3,  [.702,0,0]);
+% tc2 = plotdata('d8_1e4_T15',r2,T,   2,  [.890,.290,.2]);
+% tc3 = plotdata('d6_1e4_T15',r2,T,   1,  [.988,.553,.349]);
+% tcross = 1/3*( tc1 + tc2 + tc3 )*T-0.2;
+% % tcross = tc1*T-0.2;
+% figure(2);
+% plot( [tcross,tcross], [-1.5,1.5],'-k','LineWidth',1 );

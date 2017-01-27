@@ -1,10 +1,17 @@
-% Double integrator - Minimum Time
+% Double integrator with 2 modes - Minimum Time
+% Goal: reach point (0,0) in minimum time
+% running cost = 1
+% terminal cost = 0
+% 
+% Mode 1: x^2+y^2 < r2
+% Mode 2: x^2+y^2 > r2
+% 
 
 clear;
-scaling = 15;
-d = 6;
-nmodes = 2;
-r2 = 0.3;
+T = 15;         % time horizon
+d = 6;          % degree of relaxation
+nmodes = 2;     % number of modes
+r2 = 0.3;       % r^2, where r is the radius of the domain of mode 1
 
 % Define variables
 t = msspoly( 't', 1 );
@@ -25,8 +32,8 @@ x0{2} = [ 1; 1 ];
 % Dynamics
 x{1} = msspoly( 'x', 2 );
 u{1} = msspoly( 'u', 1 );
-f{1} = scaling * [ x{1}(2); 0 ];
-g{1} = scaling * [ 0; 1 ];
+f{1} = T * [ x{1}(2); 0 ];
+g{1} = T * [ 0; 1 ];
 
 x{2} = x{1};
 u{2} = u{1};
@@ -38,9 +45,6 @@ g{2} = g{1};
 y = x{1};
 hX{1} = r2 - y'*y;
 hXT{1} = hX{1};
-% sX{1,2} = [ r2 - y' * y;
-%             y' * y - r2 ];
-% R{1,2} = x{2};
 h{1} = x{1}' * x{1} + 20 * u{1}^2;
 H{1} = 0;
 
@@ -63,23 +67,11 @@ options.svd_eps = 1e4;
 % Solve
 [out] = HybridOCPDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
 
-pval = scaling * out.pval;
-
-% % Calculate actual T
-xs0 = x0{2};
-% if xs0(1) >= -(xs0(2)^2-2)/2
-%     Ta = 1+xs0(1)+xs0(2)+xs0(2)^2/2;
-% elseif xs0(1) >= -xs0(2)^2/2*sign(xs0(2)) 
-%     Ta = 2*sqrt(xs0(1)+xs0(2)^2/2)+xs0(2);
-% else
-%     Ta = 2*sqrt(-xs0(1)+xs0(2)^2/2)-xs0(2);
-% end
-% 
-% disp(pval / Ta);
-% disp(['Minimum time = ' num2str(Ta)]);
+pval = T * out.pval;
 disp(['LMI ' int2str(d) ' lower bound = ' num2str(pval)]);
 
 %% Plot
+xs0 = x0{2};
 % trajectory
 figure;
 hold on;
@@ -94,7 +86,7 @@ controller = [ out.u{1}; out.u{2} ];
 % ode_options = odeset('Events',@EventFcn);
 % ode_options = odeset;
 % Trajectory from simulation
-[ tval, xval ] = ode45(@(tt,xx) scaling * Hybrid_DIEq( tt, xx, controller, @(x) 1, [t;x{1}] ), ...
+[ tval, xval ] = ode45(@(tt,xx) T * Hybrid_DIEq( tt, xx, controller, @(x) 1, [t;x{1}] ), ...
                        [0:0.001:1], [xs0; 0] );
 h_traj = plot(xval(:,1), xval(:,2),'LineWidth',2);
 % Actual optimal trajectory

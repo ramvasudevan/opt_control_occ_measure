@@ -33,7 +33,11 @@ end
 
 figure(1);
 hold on;
-plot(x_state, y_state);
+if exist('mycolor','var') && exist('mythickness','var')
+    plot(x_state, y_state, 'color', mycolor, 'LineWidth', mythickness);
+else
+    plot(x_state, y_state)
+end
 
 figure(2);
 hold on;

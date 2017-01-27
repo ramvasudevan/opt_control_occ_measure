@@ -8,6 +8,8 @@ classdef SLIPPlot < handle
         Mpos;
         Opos;
         params;
+        mycolor;
+        mythickness;
     end
     
     properties (SetAccess = private)
@@ -22,9 +24,15 @@ classdef SLIPPlot < handle
     
     methods
         % Constructor
-        function P = SLIPPlot(phase, x0, params)
+        function P = SLIPPlot(phase, x0, params, mycolor, mythickness)
             P.phase = phase;
             P.params = params;
+            if nargin > 3
+                P.mycolor = mycolor;
+                P.mythickness = mythickness;
+            else
+                P.mycolor = [];
+            end
             switch P.phase
                 case 1  % Stance
                     ll = x0(1);
@@ -50,7 +58,11 @@ classdef SLIPPlot < handle
             P.UpdatePos;
             P.h_M = plot(P.h_2d, ...
                          P.Mpos(1), P.Mpos(2), 'ro', 'MarkerSize', 10);
-            P.h_traj = plot(P.h_2d, [P.Mpos(1)], [P.Mpos(2)], '-r' );
+            if isempty(P.mycolor)
+                P.h_traj = plot(P.h_2d, [P.Mpos(1)], [P.Mpos(2)], '-r' );
+            else
+                P.h_traj = plot(P.h_2d, [P.Mpos(1)], [P.Mpos(2)], 'color', P.mycolor, 'LineWidth', P.mythickness);
+            end
             P.h_link2 = plot( P.h_2d, ...
                               [P.Mpos(1), P.Mpos(1)+params.l0 * sin(params.alpha)], ...
                               [P.Mpos(2), P.Mpos(2)-params.l0 * cos(params.alpha)], ...
@@ -101,6 +113,11 @@ classdef SLIPPlot < handle
                  'XData', P.mass_hist(:,1), ...
                  'YData', P.mass_hist(:,2) );
             title( P.h_2d, tval );
+            
+%             set( P.h_M, 'Marker', 'none' );
+%             set( P.h_O, 'Marker', 'none' );
+%             set( P.h_link, 'LineStyle', 'none' );
+%             set( P.h_link2, 'LineStyle', 'none' );
             
             drawnow;
         end

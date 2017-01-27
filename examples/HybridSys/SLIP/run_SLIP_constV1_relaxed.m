@@ -1,6 +1,6 @@
 % SLIP model with 3 modes.
 % Goal: Follow a constant-speed trajectory during t \in [0,T]
-% running cost = ((0.25*t/T - 1) - x)^2
+% running cost = ((v*t - 1) - x)^2, where v = 0.3
 % terminal cost = 0
 % 
 
@@ -51,8 +51,8 @@ params.domain{3} = ...
 %-------------------------------------------------------------------------%
 %-------------------------- Parameters for OCP ---------------------------%
 %-------------------------------------------------------------------------%
-d = 4;              % degree of relaxation
-T = 5;              % time horizon
+d = 6;              % degree of relaxation
+T = 4;              % time horizon
 nmodes = 3;         % number of modes
 
 % Solver options
@@ -71,6 +71,7 @@ f = cell( nmodes, 1 );
 g = cell( nmodes, 1 );
 x0 = cell( nmodes, 1 );
 hX = cell( nmodes, 1 );
+hU = cell( nmodes, 1 );
 hXT = cell( nmodes, 1 );
 sX = cell( nmodes, nmodes );
 R = cell( nmodes, nmodes );
@@ -99,6 +100,7 @@ l0 = params.l0;
 y = x{1};
 hX{1} = [ domain{1}(:,2) - y;           % domain
           y - domain{1}(:,1) ];
+hU{1} = u{1} * (1 - u{1});
 R{1,2} = Reset_S2F_Approx(y,params);    % reset map
 sX{1,2} = ...                           % guard
         [ -(l0 - y(1))^2;                   % l = l0
@@ -107,7 +109,7 @@ sX{1,2} = ...                           % guard
           domain{2}(:,2) - R{1,2};          % Image(R(i,j)) \subset X_j
           R{1,2} - domain{2}(:,1) ];
 
-h{1} = (0.25*t - 1 - y(5))^2 * T;         % h = (0.25 * t/T - 1 - x)^2
+h{1} = (0.3*T*t - 1 - y(5))^2 * T;         % h = (0.3 * t/T - 1 - x)^2
 H{1} = 0;
 
 % Mode 2: Flight, y_dot > 0
@@ -121,7 +123,7 @@ sX{2,3} = ...                           % guard
           domain{3}(:,2) - R{2,3};          % Image(R(i,j)) \subset X_j
           R{2,3} - domain{3}(:,1) ];
 
-h{2} = (0.25*t - 1 - y(1))^2 * T;         % h = (0.25 * t/T - 1 - x)^2
+h{2} = (0.3*T*t - 1 - y(1))^2 * T;         % h = (0.3 * t/T - 1 - x)^2
 H{2} = 0;
 
 % Mode 3 : Flight 2
@@ -135,7 +137,7 @@ sX{3,1} = ...                           % guard
           domain{1}(:,2) - R{3,1};      	% Image(R(i,j)) \subset X_j
           R{3,1} - domain{1}(:,1) ];
 
-h{3} = (0.25*t - 1 - y(1))^2 * T;         % h = (0.25 * t/T - 1 - x)^2
+h{3} = (0.3*T*t - 1 - y(1))^2 * T;         % h = (0.3 * t/T - 1 - x)^2
 H{3} = 0;
 
 % Initial condition and Target Set
@@ -149,7 +151,7 @@ hXT{3} = hX{3};
 %-------------------------------------------------------------------------%
 %-------------------------------- Solve ----------------------------------%
 %-------------------------------------------------------------------------%
-[out] = HybridOCPDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options);
+[out] = HybridOCPDualSolver(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,d,options);
 
 disp(['LMI ' int2str(d) ' lower bound = ' num2str(out.pval)]);
 

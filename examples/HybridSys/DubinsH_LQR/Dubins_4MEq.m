@@ -22,8 +22,9 @@ uval1( uval1 > 1 ) = 1;
 uval1( uval1 < -1 ) = -1;
 uval2( uval2 > 1 ) = 1;
 uval2( uval2 < -1 ) = -1;
+uval = [ uval1; uval2 ];
 
-xdot = [ uval1 * polycos(1.5*xval(3));
-         uval1 * polysin(1.5*xval(3));
-         2 * uval2;
-         J(xval) ];
+xdot = [ uval1 * polycos(xval(3));
+         uval1 * polysin(xval(3));
+         3 * uval2;
+         J(xval,uval) ];

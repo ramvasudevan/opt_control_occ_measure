@@ -1,4 +1,4 @@
-function [out] = HybridOCPDualSolver(t,x,u,f,g,hX,sX,R,x0,hXT,h,H,d,options)
+function [out] = HybridOCPDualSolver(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,d,options)
 % Without sigma. Should run faster.
 % 
 % Dual problem:
@@ -61,7 +61,6 @@ mu_idx = zeros(nmodes, 1);
 
 % Create program variables in each mode
 for i = 1 : nmodes
-    hU{ i } = 1 - u{ i }.^2;
     
     prog = prog.withIndeterminate( x{i} );
     prog = prog.withIndeterminate( u{i} );

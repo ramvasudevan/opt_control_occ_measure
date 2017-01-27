@@ -43,12 +43,16 @@ else
     R_31 = @(xx) Reset_F2S_Approx( xx, params );
 end
 
-controller = @(tt,xx) max(-1,min(1,double(subs(out.u{1}, [t;x{1}], [tt;xx]))));
+controller = @(tt,xx) max(0,min(1,double(subs(out.u{1}, [t;x{1}], [tt;xx]))));
 % controller = @(tt,xx) 1;
 
 current_time = 0;
 
-P = SLIPPlot( current_mode, xs, params );
+if exist('mycolor','var') && exist('mythickness', 'var')
+	P = SLIPPlot( current_mode, xs, params, mycolor, mythickness );
+else
+	P = SLIPPlot( current_mode, xs, params ); 
+end
 state_hist = [];        % [ l, ldot, theta, thetadot, x, xdot, y, ydot, mode ]
 t_hist = [];
 

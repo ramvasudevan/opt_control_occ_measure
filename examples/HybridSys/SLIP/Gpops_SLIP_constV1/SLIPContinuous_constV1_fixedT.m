@@ -21,10 +21,10 @@ for iphase = 1 : nphases
         case 1          % Stance phase
             phaseout(iphase).dynamics = ( Stance_f_Approx(x1', params) + Stance_g_Approx(x1', params) * u1' )';
 %             phaseout(iphase).dynamics = ( Stance_f(x1') + Stance_g(x1') * u1' )';
-            phaseout(iphase).integrand = ( 0.25/T * t1 - 1 - x1(:,5) ).^2;
+            phaseout(iphase).integrand = ( 0.3 * t1 - 1 - x1(:,5) ).^2;
         case {2,3}      % Flight 1
             phaseout(iphase).dynamics = ( Flight_f(x1',params) )';
-            phaseout(iphase).integrand = ( 0.25/T * t1 - 1 - x1(:,1) ).^2;
+            phaseout(iphase).integrand = ( 0.3 * t1 - 1 - x1(:,1) ).^2;
         otherwise
             disp('Something Wrong!!!');
     end

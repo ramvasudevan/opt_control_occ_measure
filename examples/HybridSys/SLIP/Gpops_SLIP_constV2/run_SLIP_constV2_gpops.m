@@ -4,13 +4,12 @@
 % 
 
 % clear;
-clc;
+% clc;
 
 %-------------------------------------------------------------------------%
 %--------------- Provide All Physical Data for Problem -------------------%
 %-------------------------------------------------------------------------%
 nphases = length(guess.phase);
-T = 5;
 x0 = [ -1, 0.3, 0.2, 0 ];
 offset = 1;             % Initial mode: mode 3 = 1, mode 2 = 0, mode 1 = 2
 
@@ -59,7 +58,7 @@ for iphase = 1 : nphases
     bounds.phase(iphase).finalstate.lower = domain(:,1)';
     bounds.phase(iphase).finalstate.upper = domain(:,2)';
     if idx == 1
-        bounds.phase(iphase).control.lower = -1;
+        bounds.phase(iphase).control.lower = 0;
         bounds.phase(iphase).control.upper = 1;
     end
     bounds.phase(iphase).integral.lower = -100000;
