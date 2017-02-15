@@ -116,6 +116,7 @@ H{1} = 0;
 y = x{2};
 hX{2} = [ domain{2}(:,2) - y;           % domain
           y - domain{2}(:,1) ];
+hU{2} = u{2}*(1 - u{2});
 R{2,3} = y;                             % reset map
 sX{2,3} = ...                           % guard
         [ -y(4)^2;                          % y_dot = 0
@@ -130,6 +131,7 @@ H{2} = 0;
 y = x{3};
 hX{3} = [ domain{3}(:,2) - y;           % domain
           y - domain{3}(:,1) ];
+hU{3} = u{3}*(1 - u{3});
 R{3,1} = Reset_F2S_Approx(y,params);    % reset map
 sX{3,1} = ...                           % guard
         [ -(y(3) - yR)^2;                   % y = yR

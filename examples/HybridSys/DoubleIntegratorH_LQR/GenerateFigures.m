@@ -4,7 +4,7 @@ close all;
 
 T = 15;
 % T = 5;
-nSoln = 501;
+nSoln = 50001;
 r2 = 0.3;
 
 figure(1); % traj
@@ -29,13 +29,16 @@ figure(1);
 
 A = [ 0, 1; 0, 0 ];
 B = [ 0; 1 ];
-Q = eye(2);
+Q = 1*eye(2);
 R = 20;
+% R = 5;
 F = 0 * eye(2);
 tSpan = [ 0, T ];
-tol = 1e-5;
+tol = 1e-9;
+% x0 = [1;1];
 x0 = [1;1];
 sol = finiteLqr( tSpan,A,B,Q,R,F,nSoln,tol );
+
 tspan = linspace( 0, T, nSoln );
 [tval, xval] = ode45( @(t,x) DI_LinFdbk(t,x,sol,Q,R,T), tspan, [x0;0] );
 
@@ -43,8 +46,8 @@ plot(xval(:,1), xval(:,2), 'LineWidth', 6);
 
 plot(x0(1),x0(2),'Marker','o','MarkerEdgeColor',[0 0.4470 0.7410],'MarkerSize',10,'LineWidth',4);
 plot(0,0,'Marker','.','MarkerEdgeColor',[0 0.4470 0.7410],'MarkerSize',10,'LineWidth',4);
-text(1,0.2,'II','FontSize',20);
-text(0,0.2,'I','FontSize',20);
+text(0.8,0.2,'Mode 2','FontSize',15);
+text(-0.1,0.2,'Mode 1','FontSize',15);
 xlim([-1,2]);
 ylim([-1,1]);
 set(gca,'XTick',[-1,2]);
@@ -74,12 +77,17 @@ set(gca,'YTick',[-1,0]);
 set(gca, 'FontSize', 20);
 box on;
 
-disp(['Optimal cost = ', num2str(xval(end,end))]);
+integrand = xval(1:end-1,1).^2 + xval(1:end-1,2).^2 + 20*uval(1:end-1).^2;
+% integrand(1) = integrand(1) / 2;
+% integrand(end) = integrand(end) / 2;
+cost = sum(integrand) * T / (nSoln - 1);
+
+disp(['Optimal cost = ', num2str(cost)]);
 
 %% Plot our result
-tc1 = plotdata('d12_1e4_T15',r2,T,  3,  [.702,0,0]);
-tc2 = plotdata('d8_1e4_T15',r2,T,   2,  [.890,.290,.2]);
-tc3 = plotdata('d6_1e4_T15',r2,T,   1,  [.988,.553,.349]);
+tc1 = plotdata('d12_1e4_T5',r2,T,  3,  [.702,0,0]);
+tc2 = plotdata('d8_1e4_T5',r2,T,   2,  [.890,.290,.2]);
+tc3 = plotdata('d6_1e4_T5',r2,T,   1,  [.988,.553,.349]);
 
 % tc1 = plotdata('d12_1e4_T15',r2,T,  3,  [.702,0,0]);
 % tc2 = plotdata('d8_1e4_T15',r2,T,   2,  [.890,.290,.2]);

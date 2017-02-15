@@ -27,5 +27,12 @@ for i = 1 : length(tval)
         uval(i) = double(subs(controller(2), [t;x{1}], [tval(i);xval(i,1:2)']));
     end
 end
-disp(['Cost of ', filename, ' from simulation is ', num2str(xval(end,end))]);
+
+integrand = xval(1:end-1,1).^2 + xval(1:end-1,2).^2 + 20*uval(1:end-1).^2;
+% integrand(1) = integrand(1) / 2;
+% integrand(end) = integrand(end) / 2;
+cost = sum(integrand) * 0.001 * 5;
+
+% disp(['Cost of ', filename, ' from simulation is ', num2str(xval(end,end))]);
+disp(['Cost of ', filename, ' from simulation is ', num2str(cost)]);
 plot(tval*scaling, uval,'LineWidth',mythick,'color',mycolor);

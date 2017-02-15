@@ -1,6 +1,6 @@
 % SLIP model with 3 modes.
-% Goal: jump as high as possible for all times
-% running cost = l*cos(theta) [in stance phase], or y [in flight phase]
+% Goal: Follow a constant-speed trajectory during t \in [0,T]
+% running cost = ((v*t - 1) - x)^2, where v  = 0.35
 % terminal cost = 0
 % 
 
@@ -51,9 +51,9 @@ params.domain{3} = ...
 %-------------------------------------------------------------------------%
 %-------------------------- Parameters for OCP ---------------------------%
 %-------------------------------------------------------------------------%
-d = 6;              % degree of relaxation
-T = 5;              % time horizon
-nmodes = 3;         % number of modes
+d = 8;                          % degree of relaxation
+T = 4;                          % time horizon
+nmodes = 3;                     % number of modes
 
 % Solver options
 options.freeFinalTime = 0;      % fixed terminal time
@@ -100,7 +100,7 @@ l0 = params.l0;
 y = x{1};
 hX{1} = [ domain{1}(:,2) - y;           % domain
           y - domain{1}(:,1) ];
-hU{1} = u{1}*(1 - u{1});
+hU{1} = u{1} * (1 - u{1});
 R{1,2} = Reset_S2F_Approx(y,params);    % reset map
 sX{1,2} = ...                           % guard
         [ -(l0 - y(1))^2;                   % l = l0
@@ -109,29 +109,27 @@ sX{1,2} = ...                           % guard
           domain{2}(:,2) - R{1,2};          % Image(R(i,j)) \subset X_j
           R{1,2} - domain{2}(:,1) ];
 
-h{1} = -y( 1 ) * T;                     % h = -l*cos(theta) ~ -l
+h{1} = 1e2*(0.32*T*t - 1 - y(5))^2 * T;       % h = (0.35 * t - 1 - x)^2
 H{1} = 0;
 
 % Mode 2: Flight, y_dot > 0
 y = x{2};
 hX{2} = [ domain{2}(:,2) - y;           % domain
           y - domain{2}(:,1) ];
-hU{2} = u{2}*(1 - u{2});
 R{2,3} = y;                             % reset map
 sX{2,3} = ...                           % guard
         [ -y(4)^2;                          % y_dot = 0
-          hX{3};                            % G \subset X
-          domain{2}(:,2) - R{2,3};          % Image(R(i,j)) \subset X_j
+          hX{2};                            % G \subset X
+          domain{3}(:,2) - R{2,3};          % Image(R(i,j)) \subset X_j
           R{2,3} - domain{3}(:,1) ];
 
-h{2} = -y( 3 ) * T;                     % h = -y
+h{2} = 1e2*(0.32*T*t - 1 - y(1))^2 * T;       % h = (0.35 * t - 1 - x)^2
 H{2} = 0;
 
 % Mode 3 : Flight 2
 y = x{3};
 hX{3} = [ domain{3}(:,2) - y;           % domain
           y - domain{3}(:,1) ];
-hU{3} = u{3}*(1 - u{3});
 R{3,1} = Reset_F2S_Approx(y,params);    % reset map
 sX{3,1} = ...                           % guard
         [ -(y(3) - yR)^2;                   % y = yR
@@ -139,7 +137,7 @@ sX{3,1} = ...                           % guard
           domain{1}(:,2) - R{3,1};      	% Image(R(i,j)) \subset X_j
           R{3,1} - domain{1}(:,1) ];
 
-h{3} = -y( 3 ) * T;                     % h = -y
+h{3} = 1e3*(0.32*T*t - 1 - y(1))^2 * T;       % h = (0.35 * t - 1 - x)^2
 H{3} = 0;
 
 % Initial condition and Target Set
@@ -161,4 +159,4 @@ disp(['LMI ' int2str(d) ' lower bound = ' num2str(out.pval)]);
 %-------------------------------- PLot -----------------------------------%
 %-------------------------------------------------------------------------%
 PlotRelaxedControl;
-GenerateGuess;
+% GenerateGuess;

@@ -1,9 +1,7 @@
-% load('data/constV1_d4_T4');
-% load('data/constV2_d4_T4');
-% load('data/high_d4_T3');
-load('data/high_d4_T5');
 
-figure;
+if ~exist('mycolor','var')
+    mycolor = [ 0, 0.4470, 0.7410 ];
+end
 h_2d = gca;
 
 hold on;
@@ -11,7 +9,7 @@ idx_mat = mode_hist(2:end) - mode_hist(1:end-1);
 idx = [ find( idx_mat > 0 ); find( idx_mat < 0 )+1];
 idx = [1; idx; length(mode_hist)-1];
 springcoord( [ 0, 0 ] , [ 0, params.l0 ], 5, 0.3, 0.04);
-plot( h_2d, x_hist, y_hist, '-.');
+
 for i = 1 : length(idx)
     j = idx(i);
     if mode_hist(j+1) == mode_hist(j)
@@ -23,10 +21,13 @@ for i = 1 : length(idx)
     end
     PlotFrame(state_hist(j,:),params,xv,yv,h_2d);
 end
+
+plot( h_2d, x_hist, y_hist, '-', 'color', mycolor, 'LineWidth', 1);
+
 axis equal
-ylim([0, 0.3]);
-xlim([-1,0.6]);
-xlabel('$x$','Interpreter','LaTex','FontSize',15);
-ylabel('$y$','Interpreter','LaTex','FontSize',15);
+ylim([0, 0.35]);
+xlim([-1,0]);
+xlabel('$a$','Interpreter','LaTex','FontSize',15);
+ylabel('$b$','Interpreter','LaTex','FontSize',15);
 box on;
 set(h_2d, 'YTick', [0 1.5]);

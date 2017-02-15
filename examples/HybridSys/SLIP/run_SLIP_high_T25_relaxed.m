@@ -51,8 +51,8 @@ params.domain{3} = ...
 %-------------------------------------------------------------------------%
 %-------------------------- Parameters for OCP ---------------------------%
 %-------------------------------------------------------------------------%
-d = 6;              % degree of relaxation
-T = 5;              % time horizon
+d = 8;              % degree of relaxation
+T = 2.5;              % time horizon
 nmodes = 3;         % number of modes
 
 % Solver options

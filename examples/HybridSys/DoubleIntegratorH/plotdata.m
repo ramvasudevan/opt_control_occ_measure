@@ -8,7 +8,7 @@ figure(1);
 controller = [ out.u{1}; out.u{2} ];
 ode_options = odeset('Events',@EventFcn);
 [ tval, xval, time_event, ~, id_event ] = ode45(@(tt,xx) scaling * Hybrid_DIEq( tt, xx, controller, @(x) 1, [t;x{1}] ), ...
-                       [0:0.001:out.pval], [xs0; 0], ode_options );
+                       [0:0.0001:out.pval], [xs0; 0], ode_options );
 plot(xval(:,1), xval(:,2),'LineWidth',mythick,'color',mycolor);
 
 idx = find( id_event == 2 );

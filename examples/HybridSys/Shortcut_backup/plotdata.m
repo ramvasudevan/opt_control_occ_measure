@@ -1,7 +1,7 @@
 function plotdata(filename,mythick,mycolor)
 
-disp(['Processing ',filename]);
 load(filename);
+disp(['Processing ',filename]);
 
 % Trajectory
 figure(1);
@@ -16,7 +16,7 @@ h_traj1 = plot3( xval1(:,1), xval1(:,2), xval1(:,1)*0,'LineWidth',mythick,'color
 % In mode 3
 ode_options = odeset('Events', @EventFcn_3);
 [ tval3, xval3 ] = ode45( @(tt,xx) -2*T*double(subs(out.u{3,1},[t;x{3}],[tt;xx])), ...
-                          [tval1(end):0.002:1], 1, ode_options );
+                          [tval1(end):0.002:1], -xval1(end,1), ode_options );
 h_traj3 = plot3( xval3*0+1, xval3, xval3*0+1,'LineWidth',mythick,'color',mycolor );
 
 % In mode 2

@@ -22,11 +22,11 @@ patch(xvec, yvec, 1, 'FaceColor', [0.8,0.8,0.8]);
 if state(end) == 1
     plot(h_2d, xvec, yvec, 'k');
 else
-    plot(h_2d, xvec, yvec, 'color', [0.8,0.8,0.8]);
+%     plot(h_2d, xvec, yvec, 'color', [0.8,0.8,0.8]);
 end
 
 % Velocity
 if ~isempty(xv)
-    quiver(h_2d, Mpos(1), Mpos(2), 0.07*xv, 0.07*yv, 'color', 'red', 'MaxHeadSize', 1);
+%     quiver(h_2d, Mpos(1), Mpos(2), 0.06*xv, 0.06*yv, 'color', 'red', 'MaxHeadSize', 1);
 end
 

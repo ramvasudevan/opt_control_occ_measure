@@ -1,7 +1,11 @@
 function xdot = DubinsEq( t, x, controller, J )
 
+% polysin = @(x) x - x^3/6;
+% polycos = @(x) 1 - x^2/2 + x^4/24;
 polysin = @(x) x;
 polycos = @(x) 1 - x^2/2;
+% polysin = @(x) sin(x);
+% polycos = @(x) cos(x);
 
 xval = x(1:3);
 uval = controller( t, xval );

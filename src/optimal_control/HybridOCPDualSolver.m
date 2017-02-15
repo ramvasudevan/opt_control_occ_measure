@@ -1,15 +1,57 @@
 function [out] = HybridOCPDualSolver(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,d,options)
-% Without sigma. Should run faster.
+% Hybrid optimal control problem - dual solver
+% ------------------------------------------------------------------------
+% t     -- time indeterminate,      1-by-1 free msspoly
+% x     -- state indeterminate,     I-by-1 cell of (n_i)-by-1 free msspoly
+% u     -- control indeterminate,   I-by-1 cell of (m_i)-by-1 free msspoly
+% f     -- dynamics, part 1,        I-by-1 cell of (n_i)-by-1 msspoly in x{i}
+% g     -- dynamics, part 2,        I-by-1 cell of (n_i)-by-(m_i) msspoly in x{i}
+% hX    -- domain (X_i),            I-by-1 cell of (~)-by-1 msspoly in x{i}
+% hU    -- set U_i,                 I-by-1 cell of (~)-by-1 msspoly in u{i}
+% sX    -- guard(i,j),              I-by-I cell of (~)-by-1 msspoly in x{i}
+% R     -- reset map(i,j),          I-by-I cell of (n_j)-by-1 msspoly in x{i}
+% x0    -- initial point,           I-by-1 cell of (n_i)-by-1 reals
+% hXT   -- target set,              I-by-1 cell of (~)-by-1 msspoly in x{i}
+% h     -- running cost,            I-by-1 cell of 1-by-1 msspoly in (t,x{i},u{i})
+% H     -- terminal cost,           I-by-1 cell of 1-by-1 msspoly in x{i}
+% d     -- degree of relaxation,    positive even number (scalar)
+% options  -- struct
+% ------------------------------------------------------------------------
+% Solves the following hybrid optimal control problem:
 % 
-% Dual problem:
+% inf  { \int_0^1 h(t,x,u) dt } + H( x(1) )
+% s.t. \dot{x_i} = f_i + g_i * u
+%      x_j(t+) = R_ij( x_i(t-) ) when { x_i(t-) \in S_ij }
+%      x(0) = x0
+%      x(t) \in X
+%      x(T) \in XT
+%      u(t) \in U
+% 
+% where:
+% X_i  = { x | each hX{i}(x) >= 0 }          domain of mode i
+% U_i  = { u | each hU{i}(u) >= 0 }          range of control in mode i
+% S_ij = { x | each sX{i}(x) >= 0 } <= X_i   guard in mode i
+% XT_i = { x | each hXT{i}(x)>= 0 } <= X_i   target set in mode i
+% 
+% We solve the following *weak formulation* via relaxation of degree 'd':
 % 
 % sup  v_i(0,x_0)
 % s.t. LFi(v_i) + h_i >= 0
 %      v_i(T,x) <= H_i
 %      v_i(t,x) <= v_j( t, R_ij (x) )
+% ------------------------------------------------------------------------
+% 'options' is a struct that contains:
+%     .freeFinalTime:   1 = free final time, 0 = fixed final time (default: 0)
+%     .MinimumTime:     1 = minimum time, 0 = o.w. (default: 0)
+%     .withInputs:      1 = perform control synthesis, 0 = o.w. (default: 0)
+%     .solver_options:  options that will be passed to SDP solver (default: [])
+%     .svd_eps:         svd threshold (default: 1e3)
+% ------------------------------------------------------------------------
+% Attention: T = 1 is fixed number. To solve OCP for different time
+% horizons, try scaling the dynamics and cost functions.
 % 
 
-% Sanity check
+%% Sanity check
 if mod(d,2) ~= 0
     warning('d is not even. Using d+1 instead.');
     d = d+1;
@@ -31,14 +73,10 @@ for i = 1 : nmodes
 end
 
 svd_eps = 1e3;
-
+if nargin < 15, options = struct(); end
 if isfield(options, 'svd_eps'), svd_eps = options.svd_eps; end
 if ~isfield(options, 'freeFinalTime'), options.freeFinalTime = 0; end
 if ~isfield(options, 'withInputs'), options.withInputs = 0; end
-if ~isfield(options, 'MinimumTime'), options.MinimumTime = 0; end
-if options.MinimumTime == 1
-    options.freeFinalTime = 1;
-end
 
 T = 1;
 hT = t*(T-t);
@@ -52,6 +90,7 @@ if isempty(R)
     end
 end
 
+%% Setup spotless program
 % define the program
 prog = spotsosprog;
 prog = prog.withIndeterminate( t );
@@ -70,7 +109,6 @@ for i = 1 : nmodes
     [ prog, v{ i }, ~ ] = prog.newFreePoly( vmonom{ i } );
     
     % create the variables that will be used later
-%     v0{ i } = subs( v{ i }, t, 0 );
     vT{ i } = subs( v{ i }, t, T );
     dvdt{ i } = diff( v{ i }, t );
     dvdx{ i } = diff( v{ i }, x{ i } );
@@ -114,16 +152,9 @@ end
 spot_options = spot_sdp_default_options();
 spot_options.verbose = 1;
 
-params.alpha = 1.5;
-params.alpha = 1.5;
-params.rho_x = 1e-3;
-params.max_iters = 1e8;
-params.eps = 1e-3;
-params.verbose = 0;
-params.normalize = 0;
-
-spot_options.solver_options.scs = params;
-
+if isfield(options, 'solver_options')
+    spot_options.solver_options = options.solver_options;
+end
 
 %% Solve
 tic;
@@ -133,7 +164,7 @@ out.time = toc;
 out.pval = double(sol.eval(obj));
 out.sol = sol;
 
-%% Extract control input
+%% Control Synthesis
 if ~options.withInputs
     out.u = [];
     return;
@@ -168,7 +199,7 @@ for i = 1 : nmodes
     iMyt = V*pinv(iS1)*U';
     
     % yp and yn
-    for j = 1 : size(g{i},2)
+    for j = 1 : length( u{ i } )
         fprintf('Processing mode %1.0f, input #%1.0f ...\n', i, j );
         mypoly = u{ i }( j ) * urb;
         coeff = DecompMatch( mypoly, mu_basis );

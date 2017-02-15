@@ -19,8 +19,6 @@ hold on;
 figure(1);
 circx = -sqrt(r2):0.001:sqrt(r2);
 circy = sqrt( r2 - circx .^ 2 );
-% h_area2 = area([-2;3],[-2,4;-2,4],'ShowBaseLine','off','FaceColor',[0.6 1 0.6]);
-% h_area = area(circx', [-circy; 2*circy]', 'BaseValue',0, 'ShowBaseLine','off','FaceColor',[1 0.6 0.6]);
 
 h_area2 = area([-2;3],[-2,4;-2,4],'ShowBaseLine','off','FaceColor',[1 1 1]);
 h_area = area(circx', [-circy; 2*circy]', 'BaseValue',0, 'ShowBaseLine','off','FaceColor',[1 1 1]);
@@ -29,7 +27,6 @@ h_area = area(circx', [-circy; 2*circy]', 'BaseValue',0, 'ShowBaseLine','off','F
 % optimal trajectory
 figure(1);
 controller = @(tt,xx) 1-2*(tt <= t1);
-% ode_options = odeset('Events',@EventFcn);
 [ tval1, xvalA1 ] = ode45( @(tt,xx) DIEq( tt, xx, controller ), ...
                        [0:0.001:t1], x0 );
 [ tval2, xvalA2 ] = ode45( @(tt,xx) DIEq( tt, xx, controller ), ...
@@ -44,8 +41,11 @@ ylim([-1,1]);
 set(gca,'XTick',[-1,1.5]);
 set(gca,'YTick',[-1,1]);
 set(gca, 'FontSize', 20);
+set(gca,'LineWidth',3);
 xlabel('$x_1$','Interpreter','LaTex','FontSize',30);
 ylabel('$x_2$','Interpreter','LaTex','FontSize',30);
+text(1,0.2,'Mode 2','FontSize',15);
+text(-0.1,0.2,'Mode 1','FontSize',15);
 box on;
 
 % input
@@ -57,12 +57,15 @@ ylabel('$u(t)$','Interpreter','LaTex','FontSize',30);
 set(gca,'XTick',[0,1,2,3]);
 set(gca,'YTick',[-1,1]);
 set(gca, 'FontSize', 20);
+set(gca,'LineWidth',2);
+xlim([0,3]);
+ylim([-1.2,1.2]);
 box on;
 
 %% Plot our result
-tc1 = plotdata('d12_1e4',r2,scaling,  3,  [.702,0,0]);
-% tc2 = plotdata('d8_1e4',r2,scaling,   2,  [.890,.290,.2]);
-% tc3 = plotdata('d6_1e4',r2,scaling,   1,  [.988,.553,.349]);
+tc1 = plotdata('d12_1e4_new',r2,scaling,  3,  [.702,0,0]);
+tc2 = plotdata('d8_1e4_new',r2,scaling,   2,  [.890,.290,.2]);
+tc3 = plotdata('d6_1e4_new',r2,scaling,   1,  [.988,.553,.349]);
 
 tcross = 1/3*( tc1 + tc2 + tc3 )*scaling-0.03;
 figure(2);

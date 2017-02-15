@@ -7,6 +7,9 @@ else
     uval = double(subs(u(2), var, [t;xval]));
 end
 
+uval(uval>1) = 1;
+uval(uval<-1) = -1;
+
 xdot = [ xval(2);
          uval;
          J(xval,uval) ];

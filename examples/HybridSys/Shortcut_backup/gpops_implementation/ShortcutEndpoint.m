@@ -20,6 +20,7 @@ x03 = input.phase(3).initialstate;
 xf3 = input.phase(3).finalstate;
 
 % Event Group 1:  Linkage Constraints Between Phases 1 and 2
+% R12 = -xf1(1).^2 + 0.5;
 R12 = -xf1(1);
 output.eventgroup(1).event = [xf1(2)-1, x02-R12, t02-tf1];
 % Event Group 2:  Linkage Constraints Between Phases 2 and 3
