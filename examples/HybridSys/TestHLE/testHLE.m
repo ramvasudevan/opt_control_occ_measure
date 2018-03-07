@@ -1,7 +1,7 @@
 % Double integrator - Minimum Time
 
 clear;
-T = 5;
+T = 2;
 d = 6;
 nmodes = 2;
 

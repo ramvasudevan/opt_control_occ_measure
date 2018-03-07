@@ -42,7 +42,6 @@ function [out] = HybridOCPDualSolver(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,d,options)
 % ------------------------------------------------------------------------
 % 'options' is a struct that contains:
 %     .freeFinalTime:   1 = free final time, 0 = fixed final time (default: 0)
-%     .MinimumTime:     1 = minimum time, 0 = o.w. (default: 0)
 %     .withInputs:      1 = perform control synthesis, 0 = o.w. (default: 0)
 %     .solver_options:  options that will be passed to SDP solver (default: [])
 %     .svd_eps:         svd threshold (default: 1e3)
@@ -158,11 +157,14 @@ end
 
 %% Solve
 tic;
-[sol, y, dual_basis, ~] = prog.minimize( -obj, @spot_mosek, spot_options );
+[sol, y, dual_basis] = prog.minimize( -obj, @spot_mosek, spot_options );
 out.time = toc;
 
 out.pval = double(sol.eval(obj));
 out.sol = sol;
+for i = 1 : nmodes
+    out.v{ i } = v{ i };
+end
 
 %% Control Synthesis
 if ~options.withInputs

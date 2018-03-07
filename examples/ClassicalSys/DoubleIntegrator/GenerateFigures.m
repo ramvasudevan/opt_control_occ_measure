@@ -37,6 +37,7 @@ figure(2);
 plot([0,t1,t1,t1+t2],[-1,-1,1,1],'LineWidth',4);
 xlabel('$t$','Interpreter','LaTex','FontSize',30);
 ylabel('$u(t)$','Interpreter','LaTex','FontSize',30);
+ylim([-1.2,1.2]);
 set(gca,'XTick',[0,1,2,3]);
 set(gca,'YTick',[-1,1]);
 set(gca, 'FontSize', 20);

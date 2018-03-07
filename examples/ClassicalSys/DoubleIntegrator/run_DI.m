@@ -2,15 +2,15 @@
 % Target set : {(0,0)}
 
 clear;
-scaling = 3;
+T = 3;
 degree = 6;
 
 % dynamics
 t = msspoly( 't', 1 );
 x = msspoly( 'x', 2 );
 u = msspoly( 'u', 1 );
-f = scaling * [ x(2); 0 ];
-g = scaling * [ 0; 1 ];
+f = T * [ x(2); 0 ];
+g = T * [ 0; 1 ];
 
 x0 = [ 0.3; 1 ];
 hX = x(2) + 1;
@@ -26,7 +26,7 @@ opts.svd_eps = 1e2;
 % Solve
 [out] = OCPDualSolver( t, x, u, f, g, x0, hX, hXT, h, H, degree, opts );
 
-pval = scaling * out.pval;
+pval = T * out.pval;
 disp(['LMI ' int2str(degree) ' lower bound = ' num2str(pval)]);
 
 %% plot
@@ -39,7 +39,7 @@ hold on;
 
 % Trajectory from simulation
 controller = @(tt,xx) double(subs(out.u{1},[t;x],[tt;xx]));
-[ tval, xval ] = ode45( @(tt,xx) scaling*DIEq( tt, xx, controller ), [0:0.01:2.79./scaling], x0 );
+[ tval, xval ] = ode45( @(tt,xx) T*DIEq( tt, xx, controller ), [0:0.01:2.79./T], x0 );
 h_traj = plot(xval(:,1), xval(:,2),'LineWidth',4);
 % Optimal trajectory
 controller = @(tt,xx) 1-2*(tt <= t1);
@@ -69,7 +69,7 @@ uval = zeros( size(tval) );
 for i = 1 : length(tval)
     uval(i) = controller( tval(i), xval(i,:)' );
 end
-h_u = plot(tval*scaling, uval, 'LineWidth', 4);
+h_u = plot(tval*T, uval, 'LineWidth', 4);
 % Optimal
 h_u2 = plot([0,t1,t1,t1+t2],[-1,-1,1,1],'k');
 % legend([h_u, h_u2], {'Our controller', 'Optimal controller'});

@@ -1,15 +1,11 @@
-function xdot = DIEq( t, x, controller )
-Q = eye(2);
-R = 20;
-xval = x(1:2);
+function xdot = DIEq( t, x, u, J, var )
 
-uval = controller( t, xval );
+xval = x(1:2);
+uval = double(subs(u(1), var, [t;xval]));
+
+uval(uval>1) = 1;
+uval(uval<-1) = -1;
+
 xdot = [ xval(2);
          uval;
-         xval' * Q * xval + uval*R*uval ];
-end
-
-% function [value,isterminal,direction] = EventFcn(~,x)
-% 
-% 
-% end
+         J(xval,uval) ];

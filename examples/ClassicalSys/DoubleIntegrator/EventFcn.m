@@ -4,7 +4,7 @@ value = zeros(2,1);
 direction = zeros(2,1);
 isterminal = zeros(2,1);
 
-value(1) = x(2) - 0.3;
+value(1) = x(2);
 direction(1) = 1;
 isterminal(1) = 1;
 

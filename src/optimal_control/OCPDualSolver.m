@@ -77,7 +77,9 @@ fprintf('done\n');
 
 %% Solve
 fprintf('Solving...');
+tic;
 [ sol, y, dual_basis, ~ ] = prog.minimize( -obj, @spot_mosek, options );
+out.time = toc;
 fprintf('done\n');
 
 out.pval = double(sol.eval(v0));
