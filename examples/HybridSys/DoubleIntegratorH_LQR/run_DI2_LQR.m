@@ -14,7 +14,7 @@
 % 
 
 clear;
-T = 5;         % time horizon
+T = 15;         % time horizon
 d = 6;          % degree of relaxation
 nmodes = 2;     % number of modes
 r2 = 0.3;       % r^2, where r is the radius of the domain of mode 1

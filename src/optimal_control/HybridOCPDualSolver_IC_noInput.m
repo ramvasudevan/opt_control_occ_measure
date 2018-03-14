@@ -191,7 +191,7 @@ out.mu0_moments = cell( 1, nmodes );
 for i = 1 : nmodes
     if ~isempty( hX0{i} )
         out.mu0_moments{ i } = sol.dualEval( y{ mu0_idx(i) } );
-        out.mu0_basis{ i } = dual_basis{ mu_idx(i) };
+        out.mu0_basis{ i } = dual_basis{ mu0_idx(i) };
     end
 end
 fprintf('done\n');
