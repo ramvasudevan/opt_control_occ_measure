@@ -11,12 +11,20 @@ domain = [  0.7, 1.2
            -0.5, 0.5
            -1.4, 1 ];
 
+domain0 = [   1,   1
+            1.6, 1.6
+              0,   0
+              0,   0
+           -1.4,   1
+              0,   0
+           -1.4,   1 ];
+
 
 %-------------------------------------------------------------------------%
 %-------------------------- Parameters for OCP ---------------------------%
 %-------------------------------------------------------------------------%
-d = 6;              % degree of relaxation
-T = 4;              % time horizon
+d = 4;              % degree of relaxation
+T = 8;              % time horizon
 nmodes = 4;         % number of modes
 
 % Solver options
@@ -160,9 +168,8 @@ H{3} = msspoly( 0 );
 H{4} = msspoly( 0 );
 
 % Initial condition and Target Set
-hX0{1} = [ hX{1}
-           mssvar(1) - 1
-           1 - mssvar(1) ];
+hX0{1} = [ mssvar - domain0(:,1)
+           domain0(:,2) - mssvar ];
 
 % Target set is the entire space
 hXT{1} = hX{1};
