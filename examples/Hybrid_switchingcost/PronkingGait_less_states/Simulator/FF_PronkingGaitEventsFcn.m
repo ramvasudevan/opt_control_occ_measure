@@ -1,7 +1,7 @@
 % Event function for pronking gait simulator
 function [position,isterminal,direction] = FF_PronkingGaitEventsFcn(~,y)
-y = y(2:end);
-
+% y = y(2:end);
+y = y(2:end-1);
 % disp(y(3));
 position = [ Guard_L( y )       % Left leg touch-down
              nan                % Left leg lift-off

@@ -19,7 +19,7 @@ domain = [  0.7, 1.2
 %                            0,                0      % alpha_R
 %             0.89705847427834, 0.89705847427834 ];   % alpha_R_dot
 domain0 = [ 1.01391108000981, 1.01391108000981      % xdot
-            1.59710245806802, 1.59710245806802      % y
+            1.4,              1.59710245806802      % y
                            0,                0      % ydot
                            0,                0      % alpha_L
                          0.5,                1      % alpha_L_dot
@@ -31,7 +31,7 @@ domain0 = [ 1.01391108000981, 1.01391108000981      % xdot
 %-------------------------- Parameters for OCP ---------------------------%
 %-------------------------------------------------------------------------%
 d = 4;              % degree of relaxation
-T = 8;              % time horizon
+T = 3;              % time horizon
 nmodes = 4;         % number of modes
 
 % Solver options
@@ -66,10 +66,10 @@ x{4} = mssvar;
 
 
 % ---------------------- Dynamics -----------------------
-f{1} = FF_Dyn_poly( var );
-f{2} = FR_Dyn_poly( var );
-f{3} = LF_Dyn_poly( var );
-f{4} = LR_Dyn_poly( var );
+f{1} = T * FF_Dyn_poly( var );
+f{2} = T * FR_Dyn_poly( var );
+f{3} = T * LF_Dyn_poly( var );
+f{4} = T * LR_Dyn_poly( var );
 
 % -------------- Domains/guards/reset maps---------------
 guard_helper1 = Guard_L_poly( var );
