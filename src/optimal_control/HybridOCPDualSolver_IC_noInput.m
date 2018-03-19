@@ -117,9 +117,10 @@ for i = 1 : nmodes
     
     prog = prog.withIndeterminate( x{i} );
     
-    % create v(i)
+    % create v(i) and w(i)
     vmonom{ i } = monomials( [ t; x{ i } ], 0:d );
     [ prog, v{ i }, ~ ] = prog.newFreePoly( vmonom{ i } );
+    [ prog, w{ i }, ~ ] = prog.newFreePoly( msspoly(1) );
     
     % create the variables that will be used later
     v0{ i } = subs( v{ i }, t, 0 );
@@ -130,7 +131,6 @@ for i = 1 : nmodes
 %     Lgv{ i } = dvdx{ i } * g{ i };
     Lv{ i } = Lfv{ i };
 end
-[ prog, w ] = prog.newFreePoly( msspoly(1) );
 
 % creating the constraints and cost function
 obj = 0;
@@ -138,8 +138,10 @@ for i = 1 : nmodes
     fprintf(['Preprocessing Mode ', num2str(i), '...\n']);
     % v( 0, x ) >= w                    Dual: mu0
     if ~isempty( hX0{ i } )
-        prog = sosOnK( prog, v0{ i } - w, x{ i }, hX0{ i }, d );
+        prog = sosOnK( prog, v0{ i } - w{ i }, x{ i }, hX0{ i }, d );
         mu0_idx(i) = size( prog.sosExpr, 1 );
+        
+        obj = obj + w{ i };
     end
     
     % Lv_i + h_i >= 0                   Dual: mu
@@ -165,9 +167,6 @@ for i = 1 : nmodes
     end
     
 end
-
-% Objective function
-obj = w;
 
 % set options
 spot_options = spot_sdp_default_options();

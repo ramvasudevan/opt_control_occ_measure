@@ -10,6 +10,6 @@ position = [ t1(1)      % Left leg touch-down
              nan        % Left leg lift-off
              t2(1)      % Right leg touch-down
              nan      % Right leg lift-off
-             y(3) ];    % Apex
+             nan ];    % Apex
 isterminal = ones( 5, 1 );
 direction = [ -1; 1; -1; 1; -1 ];

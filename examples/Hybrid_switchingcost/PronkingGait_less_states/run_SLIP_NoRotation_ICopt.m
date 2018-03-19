@@ -19,7 +19,7 @@ domain = [  0.7, 1.2
 %                            0,                0      % alpha_R
 %             0.89705847427834, 0.89705847427834 ];   % alpha_R_dot
 domain0 = [ 1.01391108000981, 1.01391108000981      % xdot
-            1.4,              1.59710245806802      % y
+            1.59710245806802, 1.59710245806802      % y
                            0,                0      % ydot
                            0,                0      % alpha_L
                          0.5,                1      % alpha_L_dot
@@ -74,7 +74,7 @@ f{4} = T * LR_Dyn_poly( var );
 % -------------- Domains/guards/reset maps---------------
 guard_helper1 = Guard_L_poly( var );
 guard_helper2 = Guard_R_poly( var );
-c_helper = ( guard_helper1(1) - guard_helper2(1) )^2;
+c_helper = 10 *  ( guard_helper1(1) - guard_helper2(1) )^2;
 % Mode 1 : FF
 f{1} = f{1}( [1:3, 6:9] );
 hX{1} = ...
@@ -164,7 +164,7 @@ R{4,3} = mssvar;
 c{4,3} = c_helper;
 
 % -------------- Cost functions ---------------
-h{1} = - mssvar( 2 );
+h{1} = - T * mssvar( 2 );
 h{2} = msspoly( 0 );
 h{3} = msspoly( 0 );
 h{4} = msspoly( 0 );
