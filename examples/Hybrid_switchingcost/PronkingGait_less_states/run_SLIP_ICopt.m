@@ -184,7 +184,9 @@ H{4} = msspoly( 0 );
 
 % Initial condition and Target Set
 hX0{1} = [ mssvar - domain0(:,1)
-           domain0(:,2) - mssvar ];
+           domain0(:,2) - mssvar
+           guard_helper1(1)
+           guard_helper2(1) ];
 
 % Target set is the entire space
 hXT{1} = hX{1};
