@@ -2,7 +2,7 @@
 
 clear;
 T = 1;
-d = 6;
+d = 4;
 nmodes = 2;
 
 % Define variables
