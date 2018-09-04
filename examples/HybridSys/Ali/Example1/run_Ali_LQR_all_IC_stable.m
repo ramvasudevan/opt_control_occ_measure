@@ -13,9 +13,7 @@
 % h = x'*x + 20 * u^2 up to time T
 % 
 
-% clear;
-% close all;
-
+clear;
 T = 5;         % time horizon
 d = 6;          % degree of relaxation
 nmodes = 2;     % number of modes
@@ -41,12 +39,12 @@ x0{2} = [ 2; 2 ];
 % Dynamics
 x{1} = msspoly( 'x', 2 );
 u{1} = msspoly( 'u', 1 );
-f{1} = T * [ x{1}(2); -x{1}(1) - 2*x{1}(2) ];
+f{1} = T * [ x{1}(2); -x{1}(1) + 2*x{1}(2) ];
 g{1} = T * [ 0; 10 ];
 
 x{2} = x{1};
 u{2} = u{1};
-f{2} = T * [ x{2}(2); -x{2}(1) + 2*x{2}(2) ];
+f{2} = T * [ x{2}(2); -x{2}(1) - 2*x{2}(2) ];
 g{2} = g{1};
 
 % Domains
@@ -55,7 +53,7 @@ y = x{1};
 hX{1} = r2 - y'*y;
 hU{1} = 1 - u{1}^2;
 hXT{1} = hX{1};
-h{1} = 0.5 * (10*u{1})^2;
+h{1} = 0.5 * u{1}^2;
 H{1} = y' * y;
 
 % dl0{ 1 } = sphericalMoments( x{1}, [0;0], sqrt(r2) );
@@ -63,14 +61,14 @@ dl0{ 1 } = [];
 
 % Mode 2
 y = x{2};
-hX{2} = [ 1 - x{2}.^2;
+hX{2} = [ 1 - y.^2;
           y'*y - r2 ];
 hU{2} = 1 - u{2}^2;
 hXT{2} = hX{2};
 sX{2,1} = [ r2 - y' * y;
             y' * y - r2 ];
 R{2,1} = x{1};
-h{2} = 0.5 * (10*u{2})^2;
+h{2} = 0.5 * u{2}^2;
 H{2} = y' * y;
 
 dl_sphere = sphericalMoments( x{2}, [0;0], sqrt(r2) );
@@ -79,7 +77,7 @@ dl0{ 2 } = @( p ) ( dl_box(p) - dl_sphere(p) );
 
 % Options
 options.MinimumTime = 0;
-options.withInputs = 1;
+options.withInputs = 0;
 options.svd_eps = 1e4;
 
 % Solve
@@ -92,24 +90,19 @@ disp(['LMI ' int2str(d) ' lower bound = ' num2str(pval)]);
 v1 = out.sol.eval( out.v{1} );
 v2 = out.sol.eval( out.v{2} );
 
-Hamiltonian2 = diff( v2, t ) + diff( v2, x{2} ) * subs( f{2}+g{2}*u{2}, u{2}, out.u{2} ) + subs( h{2}, u{2}, out.u{2} );
-
 % v1_T = subs( v1, t, 1 );
-% v2_0 = subs( v2, t, 0 );
-% [ xval, yval ] = meshgrid( -1:0.01:1, -1:0.01:1 );
-% v1_val = reshape( double( msubs( v2_0, x{1}, [ xval(:), yval(:) ]' ) ), 201, 201 );
-% mesh( xval, yval, v1_val );
-figure(1);
-% hold on;
-for i = 0 : 100
-%     v2_0 = T * subs( v2, t, i/100 );
-    Ht = subs( Hamiltonian2, t, i/100 );
-    [ xval, yval ] = meshgrid( -1:0.01:1, -1:0.01:1 );
-%     zval = reshape( double( msubs( v2_0, x{1}, [ xval(:), yval(:) ]' ) ), 201, 201 );
-    zval = reshape( double( msubs( Ht, x{2}, [xval(:), yval(:)]' ) ), 201, 201 );
-    mesh( xval, yval, zval );
-    pause;
-end
+v2_0 = subs( v2, t, 0 );
+[ xval, yval ] = meshgrid( -1:0.01:1, -1:0.01:1 );
+v1_val = reshape( double( msubs( v2_0, x{1}, [ xval(:), yval(:) ]' ) ), 201, 201 );
+mesh( xval, yval, v1_val );
+
+% for i = 0 : 100
+%     v2_0 = subs( v2, t, i/100 );
+%     [ xval, yval ] = meshgrid( -1:0.01:1, -1:0.01:1 );
+%     v1_val = reshape( double( msubs( v2_0, x{1}, [ xval(:), yval(:) ]' ) ), 201, 201 );
+%     mesh( xval, yval, v1_val );
+%     pause;
+% end
 
 % hold on;
 % zval = xval.^2 + yval.^2;

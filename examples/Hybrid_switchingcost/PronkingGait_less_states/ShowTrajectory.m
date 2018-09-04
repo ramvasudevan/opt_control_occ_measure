@@ -4,10 +4,10 @@ function  ShowTrajectory( T,Y,P )
 
 PlotFlag = 1;
 RecordVideo = 0;
-plotGRF = 1;
-plotAnimation = 0;
+plotGRF = 0;
+plotAnimation = 1;
 saveFig = 0;
-RecordGIF = 1;
+RecordGIF = 0;
 PlotLC  = 0;
 % addpath('D:\Google Drive\Frameworks\ContFrameQuadruped - Apex');
 % addpath('D:\Google Drive\Frameworks\ContFrameQuadruped - Apex\Graphics');

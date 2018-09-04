@@ -47,7 +47,7 @@ Y = [];
 switching_seq = [];
 switching_time = [];
 mode_seq = [];
-T_max =  0.01;
+T_max =  3;
 
 % T_frame = [0.01, 1, 1.4, 2, 3];
 % hold on; plot(Y(:,1),Y(:,3),'Color',[227,  26,  28]/255, 'linewidth',5);

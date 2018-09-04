@@ -1,5 +1,5 @@
-function [out] = HybridOCPDualSolver_IC_noInput(t,x,u,f,g,hX,hU,sX,R,hX0,hXT,h,H,c,d,options)
-% Hybrid optimal control problem - dual solver, with switching cost
+function [out] = HybridOCP_ValueFunc_Hamiltonian(t,x,u,f,g,hX,u_coeff,sX,R,dl0,hXT,h,H,d,options)
+% Hybrid optimal control problem - dual solver
 % ------------------------------------------------------------------------
 % t     -- time indeterminate,      1-by-1 free msspoly
 % x     -- state indeterminate,     I-by-1 cell of (n_i)-by-1 free msspoly
@@ -10,20 +10,19 @@ function [out] = HybridOCPDualSolver_IC_noInput(t,x,u,f,g,hX,hU,sX,R,hX0,hXT,h,H
 % hU    -- set U_i,                 I-by-1 cell of (~)-by-1 msspoly in u{i}
 % sX    -- guard(i,j),              I-by-I cell of (~)-by-1 msspoly in x{i}
 % R     -- reset map(i,j),          I-by-I cell of (n_j)-by-1 msspoly in x{i}
-% hX0   -- IC set,                  I-by-1 cell of (n_i)-by-1 reals
+% X0    -- IC set,                  I-by-1 cell of (n_i)-by-1 reals
 % hXT   -- target set,              I-by-1 cell of (~)-by-1 msspoly in x{i}
 % h     -- running cost,            I-by-1 cell of 1-by-1 msspoly in (t,x{i},u{i})
 % H     -- terminal cost,           I-by-1 cell of 1-by-1 msspoly in x{i}
-% c     -- switching cost (i,j),    I-by-I cell of of 1-by-1 msspoly in x{i}
 % d     -- degree of relaxation,    positive even number (scalar)
 % options  -- struct
 % ------------------------------------------------------------------------
 % Solves the following hybrid optimal control problem:
 % 
-% inf  { \int_0^1 h(t,x,u) dt } + H( x(1) ) + { \sum c(t_ij,x(t_ij)) }
+% inf  { \int_0^1 h(t,x,u) dt } + H( x(1) )
 % s.t. \dot{x_i} = f_i + g_i * u
 %      x_j(t+) = R_ij( x_i(t-) ) when { x_i(t-) \in S_ij }
-%      x(0) = x0
+%      x(0) \in X0
 %      x(t) \in X
 %      x(T) \in XT
 %      u(t) \in U
@@ -36,10 +35,10 @@ function [out] = HybridOCPDualSolver_IC_noInput(t,x,u,f,g,hX,hU,sX,R,hX0,hXT,h,H
 % 
 % We solve the following *weak formulation* via relaxation of degree 'd':
 % 
-% sup  v_i(0,x_0)
+% sup  \int v_i(0,x) dx
 % s.t. LFi(v_i) + h_i >= 0
 %      v_i(T,x) <= H_i
-%      v_i(t,x) <= v_j( t, R_ij (x) ) + c_ij( t, x )
+%      v_i(t,x) <= v_j( t, R_ij (x) )
 % ------------------------------------------------------------------------
 % 'options' is a struct that contains:
 %     .freeFinalTime:   1 = free final time, 0 = fixed final time (default: 0)
@@ -51,7 +50,6 @@ function [out] = HybridOCPDualSolver_IC_noInput(t,x,u,f,g,hX,hU,sX,R,hX0,hXT,h,H
 % horizons, try scaling the dynamics and cost functions.
 % 
 
-fprintf('Initializing...\n')
 %% Sanity check
 if mod(d,2) ~= 0
     warning('d is not even. Using d+1 instead.');
@@ -61,14 +59,11 @@ nmodes = length(x);
 
 max_m = 0;
 for i = 1 : nmodes
-    if isempty( u{i} )
-        continue;
-    end
     m = length(u{i});
     if m > max_m
         max_m = m;
     end
-    if (length(f{i}) ~= length(x{i}))
+    if (length(f{i}) ~= length(x{i})) || (size(g{i},1) ~= length(x{i}))
         error('Inconsistent matrix size.');
     end
     if size(g{i},2) ~= m
@@ -94,30 +89,21 @@ if isempty(R)
     end
 end
 
-if isempty(c)
-    c = cell(nmodes,nmodes);
-    for i = 1 : nmodes
-    for j = 1 : nmodes
-        if ~isempty(sX{i,j}), c{i,j} = msspoly( 0 ); end
-    end
-    end
-end
-
 %% Setup spotless program
 % define the program
 prog = spotsosprog;
 prog = prog.withIndeterminate( t );
 
 % constraints to keep track of
-mu0_idx = zeros( nmodes, 1 );
 mu_idx = zeros(nmodes, 1);
 
 % Create program variables in each mode
 for i = 1 : nmodes
     
     prog = prog.withIndeterminate( x{i} );
+    prog = prog.withIndeterminate( u{i} );
     
-    % create v(i) and w(i)
+    % create v(i)
     vmonom{ i } = monomials( [ t; x{ i } ], 0:d );
     [ prog, v{ i }, ~ ] = prog.newFreePoly( vmonom{ i } );
     
@@ -127,21 +113,18 @@ for i = 1 : nmodes
     dvdt{ i } = diff( v{ i }, t );
     dvdx{ i } = diff( v{ i }, x{ i } );
     Lfv{ i } = dvdt{ i } + dvdx{ i } * f{ i };
-%     Lgv{ i } = dvdx{ i } * g{ i };
-    Lv{ i } = Lfv{ i };
+    Lgv{ i } = dvdx{ i } * g{ i };
+%     Lv{ i } = Lfv{ i } + Lgv{ i } * u{ i };
+    
+    u_candidate{ i } = u_coeff{ i } * dvdx{ i } * g{ i };
+    Lv{ i } = Lfv{ i } + Lgv{ i } * u_candidate{ i };
+    
+    h{ i } = subs( h{ i }, u{ i }, u_candidate{ i } );
 end
-[ prog, w, ~ ] = prog.newFreePoly( msspoly(1) );
 
 % creating the constraints and cost function
 obj = 0;
 for i = 1 : nmodes
-    fprintf(['Preprocessing Mode ', num2str(i), '...\n']);
-    % v( 0, x ) >= w                    Dual: mu0
-    if ~isempty( hX0{ i } )
-        prog = sosOnK( prog, v0{ i } - w, x{ i }, hX0{ i }, d );
-        mu0_idx(i) = size( prog.sosExpr, 1 );
-    end
-    
     % Lv_i + h_i >= 0                   Dual: mu
     prog = sosOnK( prog, Lv{ i } + h{ i }, ...
                    [ t; x{ i } ], [ hT; hX{ i } ], d);
@@ -156,18 +139,21 @@ for i = 1 : nmodes
         end
     end
     
-    % v_i(t,x) <= v_j (t,R(x))+c_ij     Dual: muS
+    % v_i(t,x) <= v_j (t,R(x))          Dual: muS
     for j = 1 : nmodes
         if ( ~isempty( sX{ i, j } ) ) % if its empty there isn't a guard between these
             vj_helper = subs( v{ j }, x{ j }, R{ i, j } ); 
-            prog = sosOnK( prog, vj_helper - v{ i } + c{ i, j }, [ t; x{ i } ] , [ hT; sX{ i, j } ], d );
+            prog = sosOnK( prog, vj_helper - v{ i }, [ t; x{ i } ] , [ hT; sX{ i, j } ], d );
         end
     end
     
+    % Objective function
+    if ~isempty( dl0{ i } )
+        obj = obj + dl0{ i }( v0{ i } );
+    end
+    
+%     obj = subs( v0{ 2 }, x{ 2 }, [ 2; 2 ] );
 end
-
-% objective function
-obj = w;
 
 % set options
 spot_options = spot_sdp_default_options();
@@ -176,25 +162,17 @@ spot_options.verbose = 1;
 if isfield(options, 'solver_options')
     spot_options.solver_options = options.solver_options;
 end
-fprintf('done\n');
 
 %% Solve
-fprintf('Solving...\n');
 tic;
 [sol, y, dual_basis] = prog.minimize( -obj, @spot_mosek, spot_options );
 out.time = toc;
 
 out.pval = double(sol.eval(obj));
 out.sol = sol;
-
-out.mu0_moments = cell( 1, nmodes );
 for i = 1 : nmodes
-    if ~isempty( hX0{i} )
-        out.mu0_moments{ i } = sol.dualEval( y{ mu0_idx(i) } );
-        out.mu0_basis{ i } = dual_basis{ mu0_idx(i) };
-    end
+    out.v{ i } = v{ i };
 end
-fprintf('done\n');
 
 %% Control Synthesis
 if ~options.withInputs
