@@ -4,17 +4,20 @@ lw = 2;
 ftsz = 18;
 
 figure(1);
-hold on;
-grid on;
-box on;
 
 subplot(2,1,1);
 ylabel('x','FontSize',ftsz);
 xlabel('t','FontSize',ftsz);
+hold on;
+grid on;
+box on;
 
 subplot(2,1,2);
 ylabel('u','FontSize',ftsz);
 xlabel('t','FontSize',ftsz);
+hold on;
+grid on;
+box on;
 
 Jtotal1 = zeros(1,N);
 Jtotal2 = zeros(1,N);
@@ -80,7 +83,6 @@ for cnt = 1 : N
     subplot(2,1,1);
     plot(t,x1,'b-','LineWidth',lw);
     plot(t,x2,'r--','LineWidth',lw);
-    plot(t,)
 
     subplot(2,1,2);
     plot(t,u1,'b-','LineWidth',lw);
@@ -90,4 +92,4 @@ end
 
 fprintf( "Ave. Jtotal1 = %2.4f\n", sum(Jtotal1) / N );
 fprintf( "Ave. Jtotal2 = %2.4f\n", sum(Jtotal2) / N );
-fprintf( "Value function @x0 = %2.4f", double( subs(v, [tvar;xvar], [0,x0]) ) );
+fprintf( "Value function @x0 = %2.4f\n", double( subs(v, [tvar;xvar], [0;x0]) ) );
