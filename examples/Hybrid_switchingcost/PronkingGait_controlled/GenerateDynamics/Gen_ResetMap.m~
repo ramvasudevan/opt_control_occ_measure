@@ -1,13 +1,4 @@
 % Generate real and polynomial guards/reset maps
-delete('Dyn/Guard_L.m');
-delete('Dyn/Guard_R.m');
-delete('Dyn/Reset_L.m');
-delete('Dyn/Reset_R.m');
-
-delete('PolyDyn/Guard_L_poly.m');
-delete('PolyDyn/Guard_R_poly.m');
-delete('PolyDyn/Reset_L_poly.m');
-delete('PolyDyn/Reset_R_poly.m');
 
 % Define model parameters:
     k  = 20;
@@ -58,6 +49,10 @@ Reset_R_TD = Y;
 Reset_R_TD( 10 ) = dydt( 9 );
 
 %% Export guards (event functions) and reset maps
+
+% Y = Y(2:end);
+% Reset_L_TD = Reset_L_TD( 2:end );
+% Reset_R_TD = Reset_R_TD( 2:end );
 
 matlabFunction( Guard_L_TD, 'Vars', {Y}, 'File', 'Dyn/Guard_L' );
 matlabFunction( Guard_R_TD, 'Vars', {Y}, 'File', 'Dyn/Guard_R' );

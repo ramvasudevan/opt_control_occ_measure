@@ -1,17 +1,15 @@
 % Generate polynomial dynamics using symbolic toolbox
-function [dydt, Y, U] = Gen_Dyn_helper( contactB, contactF )
+function [dydt, Y] = Gen_Dyn_helper( contactB, contactF )
 
 % Define model parameters:
     k  = 20;
-    la = 0.5; % distance from CG to hip
-    l = 1;  % original leg length
+    la = 0.5;
+    l = 1;
     ks = 5; % omega = sqrt(5);
     M = 1;
     J = 1.04625;%1.5;%1.046875;% 0.3; % 0.25;
-    g = 1; % gravity
 
     Y = sym('Y',[10,1],'real');
-    U = sym('u',[2,1],'real');
     dydt = ode( [], Y );
 
 %**********************************************************************
@@ -29,54 +27,49 @@ function [dydt, Y, U] = Gen_Dyn_helper( contactB, contactF )
         dalphaB = Y(8);
         alphaF  = Y(9);
         dalphaF = Y(10);
-
-        uB = U(1);
-        uF = U(2);
-
+        
         pos0 = [x;y];
-        posF = pos0 + la*[cos(phi);sin(phi)] ;              % front hip
-        posB = pos0 + la*[cos(phi + pi);sin(phi + pi)] ;    % back hip
-
+        posF = pos0 + la*[cos(phi);sin(phi)] ;
+        posB = pos0 + la*[cos(phi + pi);sin(phi + pi)] ;
+         
         % Compute forces acting on the main body (only legs in contact
-        % contribute):
+        % contribute): 
 
         Bforce = 0;
         Fforce = 0;
-
+        
         if contactB
-            lB = posB(2)/cos(alphaB+phi);
-            Bforce = (l+uB-lB)*k;
+            Bforce = (1- posB(2)/cos(alphaB+phi))*k;
         end
         if contactF
-            lF = posF(2)/cos(alphaF+phi);
-            Fforce = (l+uF-lF)*k;
+            Fforce = (1- posF(2)/cos(alphaF+phi))*k;
         end
-
+        
         Fx  = -Bforce*sin(alphaB+phi) - Fforce*sin(alphaF+phi);
         Fy  =  Bforce*cos(alphaB+phi) + Fforce*cos(alphaF+phi);
         Tor = -Bforce*la*cos(alphaB)  + Fforce*la*cos(alphaF);
 
         % Compute main body acceleration:
-        ddx   = Fx / M;
-        ddy   = ( Fy - g ) / M;
-        ddphi = Tor / J;
+        ddx   = Fx;
+        ddy   = Fy-1;
+        ddphi = Tor/J;
+       
 
-
-        Asv = [x y phi alphaB alphaF dx dy dphi dalphaB dalphaF ddx ddy ddphi 0 0]';
+        Asv = [x y phi alphaB alphaF dx dy dphi dalphaB dalphaF ddx ddy ddphi 0 0]';  
         % Compute leg acceleration:
-
+       
         if contactB
             [dalphaB,ddalphaB] = Func_alphaB_VA(Asv);
-
+            
         else
 
             ddalphaB = - ( Tor/J - Tor*la*sin(alphaB)/(J*l) ...
                          + Fx*cos(alphaB + phi)/(M*l)...
                          + Fy*sin(alphaB + phi)/(M*l)...
-                         + alphaB*ks/(l^2)...
-                         + dphi^2*la*cos(alphaB)/l);
+                         + alphaB*ks/(l^2)... 
+                         + dphi^2*la*cos(alphaB)/l);                       
         end
-
+        
         if contactF
             [dalphaF,ddalphaF] = Func_alphaF_VA(Asv);
         else
@@ -86,9 +79,9 @@ function [dydt, Y, U] = Gen_Dyn_helper( contactB, contactF )
                          + alphaF*ks/(l^2)...
                          - dphi^2*la*cos(alphaF)/l);
         end
-
+        
         dydt_ = [dx;ddx;dy;ddy;dphi;ddphi;dalphaB;ddalphaB;dalphaF;ddalphaF];
-
+        
     end
     function [dalphaB_,ddalphaB_] = Func_alphaB_VA(in1)
     %FUNC_ALPHAB_VA

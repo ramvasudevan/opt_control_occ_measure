@@ -167,6 +167,7 @@ end
 
 %% Solve
 tic;
+fprintf("Solving....\n");
 [sol, y, dual_basis, ~] = prog.minimize( -obj, @spot_mosek, spot_options );
 out.time = toc;
 
