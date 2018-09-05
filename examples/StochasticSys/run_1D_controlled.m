@@ -19,6 +19,7 @@ H = 0.5 * x.^2;
 
 options.MinimumTime = 0;
 options.freeFinalTime = 0;
+options.withInputs = 1;
 
 % [out] = SOCPDualSolver_noinput(t,x,u,f,sigma,x0,hX,hXT,h,H,d,options);
 [out] = SOCPDualSolver( t, x, u, f, g, sigma, x0, hX, hXT, hU, h, H, d, options );
