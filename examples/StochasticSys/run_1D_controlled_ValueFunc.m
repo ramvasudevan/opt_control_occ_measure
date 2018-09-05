@@ -11,7 +11,7 @@ g = 1;
 sigma = 0.1;
 
 % x0 = 0.3;      % initial point
-dl0 = boxMoments( x, -1, 1 );
+dl0 = boxMoments( x, -1, 1 );       % uniform distribution on [-1, 1]
 hX = 1 - x.^2;
 hXT = 1 - x.^2;
 hU = 1 - u.^2;
@@ -20,6 +20,7 @@ H = 0.5 * x.^2;
 
 options.MinimumTime = 0;
 options.freeFinalTime = 0;
+options.withInputs = 1;
 
 % [out] = SOCPDualSolver_noinput(t,x,u,f,sigma,x0,hX,hXT,h,H,d,options);
 [out] = SOCPDualSolver_ValueFunc( t, x, u, f, g, sigma, dl0, hX, hXT, hU, h, H, d, options );
