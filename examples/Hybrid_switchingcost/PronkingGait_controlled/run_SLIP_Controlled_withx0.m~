@@ -223,8 +223,8 @@ c{4,3} = c_helper;
 hX{4} = ...
     [ mssvar - domain(:,1)
       domain(:,2) - mssvar
-      -sX{4,2}
-      -sX{4,3} ];
+      -sX{2,1}
+      -sX{2,4} ];
 
 
 % -------------- Cost functions ---------------
