@@ -1,5 +1,5 @@
 %-----------------------------------%
-% BEGIN: SLIPEndpoint_high_fixedT.m %
+% BEGIN: NatureModelEndpoint_high_fixedT.m %
 %-----------------------------------%
 function output = NatureModelEndpoint(input)
 
@@ -7,67 +7,55 @@ nphases = input.auxdata.nphases;
 params = input.auxdata.params;
 l0 = input.auxdata.l0;
 yR = input.auxdata.yR;
-offset = input.auxdata.init;
+al = params.alpha;
 T = input.auxdata.T;
 polyflag = 1;
 
+polysin = @(ang) ang - ang.^3/6 + ang.^5/120;
+polycos = @(ang) 1 - ang.^2/2 + ang.^4/24;
+
 % Events
 for iphase = 1 : nphases-1
-    idx = mod(iphase+offset,3) + 1;
+    cmode = mod(iphase,2) + 1;      % current mode
     
-    switch idx
-        case 1      % Stance phase
+    switch cmode
+        case 1      % Mode 1
             tf1 = input.phase(iphase).finaltime;
             xf1 = input.phase(iphase).finalstate;
             t02 = input.phase(iphase+1).initialtime;
             x02 = input.phase(iphase+1).initialstate;
             
-            % Linkage constraints from stance to flight 1 (Take-off)
-            % Guard: l = lmax, ldot >= 0
-            G = [ xf1(1) - l0, xf1(2) ] * 1;
-            % Reset: R
-            if polyflag
-                R = ( Reset_S2F_Approx( xf1', params ) )';
-            else
-                R = ( Reset_S2F( xf1' ) )';
-            end
-            output.eventgroup(iphase).event = [ t02 - tf1, x02 - R, G ];
-            
-            % The bounds should be: (0, zeros(1,4), 0, 0) ~ (0, zeros(1,4), 0, ldotmax)
-            
-        case 2      % Flight phase 1
-            tf1 = input.phase(iphase).finaltime;
-            xf1 = input.phase(iphase).finalstate;
-            t02 = input.phase(iphase+1).initialtime;
-            x02 = input.phase(iphase+1).initialstate;
-            
-            % Linkage constraints from flight 1 to flight 2
-            % Guard: ydot = 0
-            G = xf1(4);
+            % Linkage constraints from Mode 1 to Mode 2
+            y = xf1(1) * polycos(xf1(3));
+            ydot = xf1(2) * polycos(xf1(3)) - xf1(1) * xf1(4) * polysin(xf1(3));
+            % Guard: y = yR, ydot > 0
+            G = [ y, ydot ];
             % Reset: identity
-            output.eventgroup(iphase).event = [ t02 - tf1, x02 - xf1, G ];
+            R = xf1;
+            output.eventgroup(iphase).event = [ t02 - tf1, x02 - R, G ];
             
-            % The bounds should be: (0, zeros(1,4), 0) ~ itself
+            % The bounds should be: (0, zeros(1,4), yR, 0) ~ (0, zeros(1,4), yR, ldotmax)
             
-        case 3      % Flight phase 2
+        case 2      % Mode 2
             tf1 = input.phase(iphase).finaltime;
             xf1 = input.phase(iphase).finalstate;
             t02 = input.phase(iphase+1).initialtime;
             x02 = input.phase(iphase+1).initialstate;
             
-            % Linkage constraints from flight 2 to stance (Touch-down)
-            % Guard: y = yR
-            G = (xf1(3) - yR) * 1;
-            % Reset: R
+            % Linkage constraints from Mode 2 to Mode 1
+            y = xf1(1) * polycos(xf1(3));
+            ydot = xf1(2) * polycos(xf1(3)) - xf1(1) * xf1(4) * polysin(xf1(3));
+            % Guard: y = yR, ydot < 0
+            G = [ y, ydot ];
+            % Reset R
             if polyflag
-                R = ( Reset_F2S_Approx( xf1', params ) )';
+                R = ( Reset_S2S_poly( xf1', params ) )';
             else
-                R = ( Reset_F2S( xf1' ) )';
+                R = ( Reset_S2S( xf1', params ) )';
             end
             output.eventgroup(iphase).event = [ t02 - tf1, x02 - R, G ];
             
-            % The bounds should be: (0, zeros(1,5), 0) ~ itself
-            
+            % The bounds should be: (0, zeros(1,4), yR, -ldotmax) ~ (0, zeros(1,4), yR, 0)
     end
 end
 
@@ -79,11 +67,16 @@ output.eventgroup(iphase).event = [ tf1 - T ];
 % Objective function
 objective = 0;
 for i = 1 : nphases
+    xf1 = input.phase(iphase).finalstate;
+    if (cmode == 2) && (i ~= nphases)
+        SwitchingCost = (xf1(1) * polysin(xf1(3)) + l0 * sin(-al) - input.auxdata.d_des)^2;
+        objective = objective + SwitchingCost;
+    end
     objective = objective + input.phase(i).integral;
 end
 
 output.objective = objective;
 
 %---------------------------------%
-% END: SLIPEndpoint.m %
+% END: NatureModelEndpoint.m %
 %---------------------------------%

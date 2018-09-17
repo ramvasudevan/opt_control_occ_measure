@@ -20,7 +20,7 @@ auxdata.l0 = params.l0;
 auxdata.yR = params.yR;
 auxdata.nphases = nphases; 
 auxdata.T = T;
-auxdata.init = offset;
+auxdata.d_des = 0.6;        % desired step length
 
 %-------------------------------------------------------------------------%
 %----------------- Generate Initial Guess for Problem --------------------%
@@ -41,6 +41,7 @@ for iphase = 1 : nphases
     
     guess.phase(iphase).time = [dt*(iphase-1); dt*iphase ];
     guess.phase(iphase).state = zeros( 2, 4 );
+    guess.phase(iphase).control = [0; 0];
     guess.phase(iphase).integral = 0;
 end
 
@@ -58,11 +59,16 @@ for iphase = 1 : nphases
     
     bounds.phase(iphase).initialtime.lower = t0;
     bounds.phase(iphase).initialtime.upper = t0;
-    bounds.phase(iphase).finaltime.lower = t0;
+    if (iphase == nphases)
+        bounds.phase(iphase).finaltime.lower = T;
+    else
+        bounds.phase(iphase).finaltime.lower = t0;
+    end
+    
     bounds.phase(iphase).finaltime.upper = T;
     
-    bounds.phase(iphase).initialstate.lower = x0;
-    bounds.phase(iphase).initialstate.upper = x0;
+    bounds.phase(iphase).initialstate.lower = x0';
+    bounds.phase(iphase).initialstate.upper = x0';
     bounds.phase(iphase).state.lower        = params.domain{cmode}(:,1)';
     bounds.phase(iphase).state.upper        = params.domain{cmode}(:,2)';
     bounds.phase(iphase).finalstate.lower   = params.domain{cmode}(:,1)';
@@ -84,37 +90,31 @@ for iphase = 1 : nphases
 end
 
 for iphase = 1 : nphases-1
-    switch idx
+    cmode = mod(iphase,2) + 1;      % current mode
+    switch cmode
         case 1              % Mode 1 -> Mode 2
-            bounds.eventgroup(iphase).lower = zeros(1,7);
-            bounds.eventgroup(iphase).upper = [ zeros(1,6), 1000 ];     % 1000 is supposed to be ldotmax!!!
+            % y = yR, ydot > 0
+            bounds.eventgroup(iphase).lower = [zeros(1,5), params.yR, 0];
+            bounds.eventgroup(iphase).upper = [zeros(1,5), params.yR, 10 ];
             
-        case 2              % Flight 1 -> Flight 2
-            bounds.eventgroup(iphase).lower = zeros(1,6);
-            bounds.eventgroup(iphase).upper = zeros(1,6);
-            
-        case 3              % Flight 2 -> Stance (Touch-down)
-            bounds.eventgroup(iphase).lower = zeros(1,7);
-            bounds.eventgroup(iphase).upper = zeros(1,7);
-            
+        case 2              % Mode 1 -> Mode 2
+            % y = yR, ydot < 0
+            bounds.eventgroup(iphase).lower = [zeros(1,5), params.yR, -10];
+            bounds.eventgroup(iphase).upper = [zeros(1,5), params.yR, 0];
     end
 end
 
 % Terminal condition
+% t_final = T
 iphase = nphases;
 bounds.eventgroup(iphase).lower = 0;
-bounds.eventgroup(iphase).upper = 1000;
-
-%-------------------------------------------------------------------------%
-%------- Initial Guess of Solution Should be Provided by run_sim ---------%
-%-------------------------------------------------------------------------%
-
+bounds.eventgroup(iphase).upper = 0;
 
 %-------------------------------------------------------------------------%
 %----------Provide Mesh Refinement Method and Initial Mesh ---------------%
 %-------------------------------------------------------------------------%
 mesh.method          = 'hp-LiuRao-Legendre';
-% mesh.maxiterations   = 45;
+mesh.maxiterations   = 45;
 mesh.tolerance       = 1e-7;
 for i = 1 : nphases
     mesh.phase(i).colpoints = 10 * ones(1,100);
@@ -126,8 +126,8 @@ end
 %------------- Assemble Information into Problem Structure ---------------%        
 %-------------------------------------------------------------------------%
 setup.name                           = 'SLIP_constV1_fixedT';
-setup.functions.continuous           = @SLIPContinuous_constV1_fixedT;
-setup.functions.endpoint             = @SLIPEndpoint_constV1_fixedT;
+setup.functions.continuous           = @NatureModelContinuous;
+setup.functions.endpoint             = @NatureModelEndpoint;
 setup.displaylevel                   = 2;
 setup.bounds                         = bounds;
 setup.guess                          = guess;
@@ -153,4 +153,4 @@ toc
 %-------------------------------------------------------------------------%
 %-------------------------------- PLot -----------------------------------%
 %-------------------------------------------------------------------------%
-PlotGpopsTrajectory;
+

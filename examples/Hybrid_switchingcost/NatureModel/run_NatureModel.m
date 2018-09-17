@@ -129,7 +129,7 @@ sX{2,1} = ...                               % guard
           yR - y;
           -ydot;                        % ydot < 0
           hX{2} ];                      % G \subset X                   % G \subset X
-c{2,1} = (xvar(1) * polysin(xvar(3)) + l0 * sin(-al) - d_des);        % step length = l * sin(theta) + l0 * sin(-alpha)
+c{2,1} = (xvar(1) * polysin(xvar(3)) + l0 * sin(-al) - d_des) ^ 2;        % step length = l * sin(theta) + l0 * sin(-alpha)
 h{2} = uvar^2;
 H{2} = msspoly(0);
 

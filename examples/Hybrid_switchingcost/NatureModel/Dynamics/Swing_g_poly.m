@@ -20,3 +20,4 @@ out = ...
     1/m
     0
     0 ];
+out = repmat( out, 1, size( myq1, 2 ) );

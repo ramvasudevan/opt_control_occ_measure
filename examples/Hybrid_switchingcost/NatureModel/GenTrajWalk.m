@@ -21,10 +21,10 @@ polycos = @(ang) 1 - ang.^2/2 + ang.^4/24;
 Dyn         = cell(2,1);
 controller  = cell(2,1);
 
-% controller{1} = @(tt,xx) max(0,min(umax,double(subs(out.u{1}, [t;x{1}], [tt;xx]))));
-% controller{2} = @(tt,xx) max(0,min(umax,double(subs(out.u{2}, [t;x{1}], [tt;xx]))));
-controller{1} = @(tt,xx) max(0, 5 * (params.l0 - xx(1) ));
-controller{2} = @(tt,xx) max(0, 5 * (params.l0 - xx(1) ));
+controller{1} = @(tt,xx) max(0,min(umax,double(subs(out.u{1}, [t;x{1}], [tt;xx]))));
+controller{2} = @(tt,xx) max(0,min(umax,double(subs(out.u{2}, [t;x{1}], [tt;xx]))));
+% controller{1} = @(tt,xx) max(0, 5 * (params.l0 - xx(1) ));
+% controller{2} = @(tt,xx) max(0, 5 * (params.l0 - xx(1) ));
 
 Dyn{1} = @(tt,xx) T * ( Swing_f_poly(xx,params) + Swing_g_poly(xx,params) * controller{1}(tt,xx) );
 Dyn{2} = @(tt,xx) T * ( Swing_f_poly(xx,params) + Swing_g_poly(xx,params) * controller{2}(tt,xx) );
