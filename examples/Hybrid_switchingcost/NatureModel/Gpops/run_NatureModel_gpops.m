@@ -1,8 +1,4 @@
 % GPOPS-II
-% SLIP model with 3 modes.
-% Goal: Follow a constant-speed trajectory during t \in [0,T]
-% running cost = ((0.25*t/T - 1) - x)^2
-% terminal cost = 0
 % 
 % Initial guess is not given beforehand. Number of transitions is specified
 % by 'nphases'.
@@ -32,15 +28,19 @@ auxdata.init = offset;
 clear guess bounds mesh
 dt = (T) / nphases;
 for iphase = 1 : nphases
-    current_phase = mod(iphase+offset,3) + 1;
-    domain = params.domain{current_phase};
+%     current_phase = mod(iphase+offset,3) + 1;
+%     domain = params.domain{current_phase};
+%     
+%     guess.phase(iphase).time = [ dt*(iphase-1); dt*iphase ];
+%     guess.phase(iphase).state = [ ( domain(:,2) + domain(:,1) )' / 2;
+%                                   ( domain(:,2) + domain(:,1) )' / 2 ];
+%     if current_phase == 1
+%         guess.phase(iphase).control = [ 0; 0 ];
+%     end
+%     guess.phase(iphase).integral = 0;
     
-    guess.phase(iphase).time = [ dt*(iphase-1); dt*iphase ];
-    guess.phase(iphase).state = [ ( domain(:,2) + domain(:,1) )' / 2;
-                                  ( domain(:,2) + domain(:,1) )' / 2 ];
-    if current_phase == 1
-        guess.phase(iphase).control = [ 0; 0 ];
-    end
+    guess.phase(iphase).time = [dt*(iphase-1); dt*iphase ];
+    guess.phase(iphase).state = zeros( 2, 4 );
     guess.phase(iphase).integral = 0;
 end
 
@@ -50,48 +50,42 @@ end
 
 t0 = 0;
 
-% Mode:  3->1->2->3->1->2->3->1->2->3->1 (In spotless def)
-% Phase: 1->2->3->4->5->6->7->8->9->10->11 (In gpops def)
+% Mode: 2 -> 1 -> 2 -> 1 (in spotless def)
+% Phase: 1 -> 2 -> 3 -> 4 (In gpops def)
 
 for iphase = 1 : nphases
-    idx = mod(iphase+offset,3) + 1;
-    domain = params.domain{idx};
+    cmode = mod(iphase,2) + 1;      % current mode
+    
     bounds.phase(iphase).initialtime.lower = t0;
+    bounds.phase(iphase).initialtime.upper = t0;
+    bounds.phase(iphase).finaltime.lower = t0;
     bounds.phase(iphase).finaltime.upper = T;
-    if iphase == 1
-        bounds.phase(iphase).initialtime.upper = t0;
+    
+    bounds.phase(iphase).initialstate.lower = x0;
+    bounds.phase(iphase).initialstate.upper = x0;
+    bounds.phase(iphase).state.lower        = params.domain{cmode}(:,1)';
+    bounds.phase(iphase).state.upper        = params.domain{cmode}(:,2)';
+    bounds.phase(iphase).finalstate.lower   = params.domain{cmode}(:,1)';
+    bounds.phase(iphase).finalstate.upper   = params.domain{cmode}(:,2)';
+    bounds.phase(iphase).control.lower = 0;
+    bounds.phase(iphase).control.upper = params.umax;
+    bounds.phase(iphase).integral.lower = -1000;
+    bounds.phase(iphase).integral.upper = 1000;
+    if (cmode == 1)
+        % y \in [0, yR]
+        bounds.phase(iphase).path.lower = 0;
+        bounds.phase(iphase).path.upper = params.yR;
     else
-        bounds.phase(iphase).initialtime.upper = T; 
+        % y \in [yR, lmax]
+        bounds.phase(iphase).path.lower = params.yR;
+        bounds.phase(iphase).path.upper = params.lmax;
     end
-    if iphase == nphases
-        bounds.phase(iphase).finaltime.lower = T;
-    else
-        bounds.phase(iphase).finaltime.lower = t0;
-    end
-    if iphase == 1
-        bounds.phase(iphase).initialstate.lower = x0;
-        bounds.phase(iphase).initialstate.upper = x0;
-    else
-        bounds.phase(iphase).initialstate.lower = domain(:,1)';
-        bounds.phase(iphase).initialstate.upper = domain(:,2)';
-    end
-    bounds.phase(iphase).state.lower = domain(:,1)';
-    bounds.phase(iphase).state.upper = domain(:,2)';
-    bounds.phase(iphase).finalstate.lower = domain(:,1)';
-    bounds.phase(iphase).finalstate.upper = domain(:,2)';
-    if idx == 1
-        bounds.phase(iphase).control.lower = 0;
-        bounds.phase(iphase).control.upper = 1;
-    end
-    bounds.phase(iphase).integral.lower = -100000;
-    bounds.phase(iphase).integral.upper = 100000;
     
 end
 
 for iphase = 1 : nphases-1
-    idx = mod(iphase+offset,3) + 1;
     switch idx
-        case 1              % Stance -> Flight 1 (Take-off)
+        case 1              % Mode 1 -> Mode 2
             bounds.eventgroup(iphase).lower = zeros(1,7);
             bounds.eventgroup(iphase).upper = [ zeros(1,6), 1000 ];     % 1000 is supposed to be ldotmax!!!
             
