@@ -12,10 +12,10 @@
 %-------------------------------------------------------------------------%
 params = struct();
 
-params.m        = 1;            % mass
+params.m        = 0.2;            % mass
 params.g        = 0.2;          % gravitational acceleration
 params.l0       = 0.5;          % leg length at touch-down
-params.lmax     = 0.7;            % maximum leg length
+params.lmax     = 1;            % maximum leg length
 
 params.alpha    =-pi/6;         % leg angle in flight phase = -30 degrees
 params.umax     = 0.1;          % upper bound of input
@@ -32,17 +32,17 @@ lmax = params.lmax;
 % state = ( l, l_dot, theta, theta_dot )
 params.domain{1} =...
         [ 0.1, lmax;        % l         - leg length
-         -0.3, 0.3;         % l_dot     - time derivative of l
-           -1, 1;           % theta     - leg angle
-           -3, 0 ];         % theta_dot - time derivative of theta
+         -0.5, 0.5;         % l_dot     - time derivative of l
+         -1.2, 1.2;           % theta     - leg angle
+            0, 2 ];         % theta_dot - time derivative of theta
 
 % Mode 2: stance, y >= yR
 % state = ( l, l_dot, theta, theta_dot )
 params.domain{2} =...
         [ 0.1, lmax;        % l         - leg length
-         -0.3, 0.3;         % l_dot     - time derivative of l
-           -1, 1;           % theta     - leg angle
-           -3, 0 ];         % theta_dot - time derivative of theta
+         -0.5, 0.5;         % l_dot     - time derivative of l
+         -1.2, 1.2;           % theta     - leg angle
+            0, 2 ];         % theta_dot - time derivative of theta
 
 %-------------------------------------------------------------------------%
 %-------------------------- Parameters for OCP ---------------------------%

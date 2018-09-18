@@ -21,10 +21,10 @@ polycos = @(ang) 1 - ang.^2/2 + ang.^4/24;
 Dyn         = cell(2,1);
 controller  = cell(2,1);
 
-controller{1} = @(tt,xx) max(0,min(umax,double(subs(out.u{1}, [t;x{1}], [tt;xx]))));
-controller{2} = @(tt,xx) max(0,min(umax,double(subs(out.u{2}, [t;x{1}], [tt;xx]))));
-% controller{1} = @(tt,xx) max(0, 5 * (params.l0 - xx(1) ));
-% controller{2} = @(tt,xx) max(0, 5 * (params.l0 - xx(1) ));
+% controller{1} = @(tt,xx) max(0,min(umax,double(subs(out.u{1}, [t;x{1}], [tt;xx]))));
+% controller{2} = @(tt,xx) max(0,min(umax,double(subs(out.u{2}, [t;x{1}], [tt;xx]))));
+controller{1} = @(tt,xx) max(0, 1 * (params.l0 - xx(1) ));
+controller{2} = @(tt,xx) max(0, 1 * (params.l0 - xx(1) ));
 
 Dyn{1} = @(tt,xx) T * ( Swing_f_poly(xx,params) + Swing_g_poly(xx,params) * controller{1}(tt,xx) );
 Dyn{2} = @(tt,xx) T * ( Swing_f_poly(xx,params) + Swing_g_poly(xx,params) * controller{2}(tt,xx) );
@@ -40,6 +40,7 @@ ResetMap{2,1} = @(xx) Reset_S2S_poly( xx, params );
 state_hist = [];        % [ l, ldot, theta, thetadot, x, xdot, y, ydot, mode ]
 t_hist = [];
 origin_hist = [];
+mode_hist = [];
 previous_origin = 0;
 current_time = 0;
 
@@ -71,8 +72,9 @@ while current_time < MaxTime - 0.01
             
             P.Visualize( tout, xout, previous_mode );
             
-            origin_hist = zeros( length(t_hist), 1 ) + previous_origin;
-            previous_origin = previous_origin + state_hist(end,1) * polysin(state_hist(end,3));
+            origin_hist = [ origin_hist; repmat(previous_origin, length(tout), 1)];
+            mode_hist = [ mode_hist; ones( length(tout), 1 ) ];
+%             previous_origin = previous_origin + state_hist(end,1) * polysin(state_hist(end,3));
         case 2
             options = odeset('Events',@(tt,xx) EvtFunc21(tt,xx,params));
             options = odeset(options,'AbsTol',1e-9,'RelTol',1e-8);
@@ -96,8 +98,9 @@ while current_time < MaxTime - 0.01
             
             P.Visualize( tout, xout, previous_mode );
             
-            origin_hist = zeros( length(t_hist), 1 ) + previous_origin;
+            origin_hist = [ origin_hist; repmat(previous_origin, length(tout), 1)];
             previous_origin = previous_origin + state_hist(end,1) * polysin(state_hist(end,3)) + params.l0 * sin(-params.alpha);
+            mode_hist = [ mode_hist; 2 * ones( length(tout), 1 ) ];
         case 0
             break;
         otherwise
@@ -105,12 +108,26 @@ while current_time < MaxTime - 0.01
     end
 end
 
-% plot
+%% plot states
 l_hist = state_hist( :, 1 );
 theta_hist = state_hist( :, 3 );
 x_hist = origin_hist + l_hist .* polysin( theta_hist );
 y_hist = l_hist .* polycos( theta_hist );
+u_hist = zeros( length(t_hist), 1 );
+for i = 1 : length(t_hist)
+    u_hist(i) = controller{mode_hist(i)}(t_hist(i), x_hist(i));
+end
 
 figure(2);
+hold on;
+title('x-y');
 plot( x_hist, y_hist );
+plot( origin_hist, origin_hist * 0, 'ro' );
+
+figure(3);
+hold on;
+title('states');
+plot( t_hist, state_hist );
+plot( t_hist, u_hist );
+legend('l', 'ldot', 'theta', 'thetadot', 'u');
 
