@@ -121,7 +121,7 @@ x_hist = origin_hist + l_hist .* polysin( theta_hist );
 y_hist = l_hist .* polycos( theta_hist );
 u_hist = zeros( length(t_hist), 1 );
 for i = 1 : length(t_hist)
-    u_hist(i) = controller{mode_hist(i)}(t_hist(i), state_hist(i,:));
+    u_hist(i) = controller{mode_hist(i)}(t_hist(i), state_hist(i,:)');
 end
 
 % Figure 2 shows x-y
@@ -140,3 +140,25 @@ plot( t_hist, u_hist );
 plot( t_hist, phase_hist );
 legend('l', 'ldot', 'theta', 'thetadot', 'u', 'phase');
 
+
+%% Generate initial guess
+nphases = 1;
+T_new = 0.8;
+len = nnz(t_hist < T_new/T);
+t_hist = t_hist( t_hist < T_new/T );
+for iphase = 1 : nphases
+    idx = find( phase_hist(1:len) == iphase );
+    myguess.phase(iphase).time = t_hist( idx );
+    myguess.phase(iphase).state = state_hist( idx, : );
+    myguess.phase(iphase).control = zeros( length(idx), 1 );
+    for cnt = 1 : length(idx)
+        cmode = mod(iphase,2)+1;
+        myguess.phase(iphase).control(cnt) = controller{cmode}(t_hist( idx(cnt) ), state_hist( idx(cnt),: )');
+    end
+    
+    myguess.phase(iphase).time = t_hist( idx ) / 0.55;
+%     guess.phase(iphase).time = [dt*(iphase-1); dt*iphase ];
+%     guess.phase(iphase).state = zeros( 2, 4 );
+%     guess.phase(iphase).control = [0; 0];
+    myguess.phase(iphase).integral = 0;
+end

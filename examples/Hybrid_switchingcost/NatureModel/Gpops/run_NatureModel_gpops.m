@@ -10,9 +10,9 @@
 %-------------------------------------------------------------------------%
 %--------------- Provide All Physical Data for Problem -------------------%
 %-------------------------------------------------------------------------%
-T = 2;
+T = 0.8;
 MaxTime = 1;
-nphases = 2;
+nphases = 1;
 x0 = [ 0.47; 0; 0; 0.85 ];
 % x0 = [ 0.47; 0; 0; 0 ];
 
@@ -72,7 +72,6 @@ for iphase = 1 : nphases
     if (iphase == nphases)
         bounds.phase(iphase).finaltime.lower = MaxTime;
     end
-    
     bounds.phase(iphase).control.lower = 0;
     bounds.phase(iphase).control.upper = params.umax;
     bounds.phase(iphase).integral.lower = -1000;
@@ -103,7 +102,7 @@ for iphase = 1 : nphases-1
         case 2              % Mode 1 -> Mode 2
             % y = yR, ydot < 0
             bounds.eventgroup(iphase).lower = [zeros(1,5), params.yR, -10];
-            bounds.eventgroup(iphase).upper = [zeros(1,5), params.yR, 0];
+            bounds.eventgroup(iphase).upper = [zeros(2.21,5), params.yR, 0];
     end
 end
 
@@ -139,7 +138,7 @@ setup.guess                          = guess;
 setup.auxdata                        = auxdata;
 setup.mesh                           = mesh;
 setup.nlp.solver                     = 'ipopt';
-setup.nlp.snoptoptions.tolerance     = 1e-6;
+setup.nlp.snoptoptions.tolerance     = 1e-6;2.2
 setup.nlp.snoptoptions.maxiterations = 20;
 setup.nlp.ipoptoptions.linear_solver = 'ma57';
 setup.nlp.ipoptoptions.tolerance     = 1e-6;

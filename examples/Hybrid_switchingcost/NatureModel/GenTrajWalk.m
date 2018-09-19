@@ -5,7 +5,6 @@
 close all
 
 MaxTime = 1;
-current_mode = 2;
 % while isempty(x0{current_mode})
 %     current_mode = current_mode + 1;
 % end
@@ -125,7 +124,7 @@ x_hist = origin_hist + l_hist .* polysin( theta_hist );
 y_hist = l_hist .* polycos( theta_hist );
 u_hist = zeros( length(t_hist), 1 );
 for i = 1 : length(t_hist)
-    u_hist(i) = controller{mode_hist(i)}(t_hist(i), state_hist(i,:));
+    u_hist(i) = controller{mode_hist(i)}(t_hist(i), state_hist(i,:)');
 end
 
 figure(2);
@@ -143,7 +142,9 @@ plot( t_hist, phase_hist );
 legend('l', 'ldot', 'theta', 'thetadot', 'u', 'phase');
 
 %% Generate initial guess
-for iphase = 1 : 2
+nphases = 3;
+
+for iphase = 1 : nphases
     idx = find( phase_hist == iphase );
     myguess.phase(iphase).time = t_hist( idx );
     myguess.phase(iphase).state = state_hist( idx, : );
@@ -161,6 +162,11 @@ end
 
 figure(4);
 hold on;
+myguess_time = [];
+myguess_states = [];
+for iphase = 1 : nphases
+    myguess_time = [ myguess_time; myguess.phase(iphase).time ];
+end
 % for iphase = 1 : 2
     plot( [myguess.phase(1).time; myguess.phase(2).time ], [myguess.phase(1).state(:,1); myguess.phase(2).state(:,1)] );
     plot( [myguess.phase(1).time; myguess.phase(2).time ], [myguess.phase(1).state(:,2); myguess.phase(2).state(:,2)] );

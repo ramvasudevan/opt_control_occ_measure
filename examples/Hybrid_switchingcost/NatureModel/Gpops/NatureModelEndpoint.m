@@ -71,7 +71,7 @@ for iphase = 1 : nphases
     xf1 = input.phase(iphase).finalstate;
     if (cmode == 2) && (iphase ~= nphases)
         SwitchingCost = (xf1(1) * polysin(xf1(3)) + l0 * sin(-al) - input.auxdata.d_des)^2;
-%         objective = objective + SwitchingCost;
+        objective = objective + SwitchingCost;
     end
     objective = objective + input.phase(iphase).integral;
 end

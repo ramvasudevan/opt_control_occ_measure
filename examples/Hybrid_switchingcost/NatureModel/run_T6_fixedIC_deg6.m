@@ -135,7 +135,7 @@ H{2} = msspoly(0);
 
 
 % Initial condition and Target Set
-x0{2} = [ l0; 0; 0; 0.1 ];
+x0{2} = [ 0.47; 0; 0; 0.85 ];
 
 % Target set is the entire space
 hXT{1} = hX{1};
@@ -143,3 +143,7 @@ hXT{2} = hX{2};
 
 
 [out] = HybridOCPDualSolver_switching(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,c,d,options);
+
+save('Result_T4_fixedIC_deg6');
+
+PlotMySol;
