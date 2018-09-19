@@ -144,6 +144,7 @@ hXT{2} = hX{2};
 
 [out] = HybridOCPDualSolver_switching(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,c,d,options);
 
+printf('Finished solving fixedIC, T4, deg 10');
 save('Result_T4_fixedIC_deg10');
 
 PlotMySol;

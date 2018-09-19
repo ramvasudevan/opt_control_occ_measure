@@ -10,9 +10,9 @@
 %-------------------------------------------------------------------------%
 %--------------- Provide All Physical Data for Problem -------------------%
 %-------------------------------------------------------------------------%
-T = 0.8;
+T = 3;
 MaxTime = 1;
-nphases = 1;
+nphases = 3;
 x0 = [ 0.47; 0; 0; 0.85 ];
 % x0 = [ 0.47; 0; 0; 0 ];
 
@@ -102,7 +102,7 @@ for iphase = 1 : nphases-1
         case 2              % Mode 1 -> Mode 2
             % y = yR, ydot < 0
             bounds.eventgroup(iphase).lower = [zeros(1,5), params.yR, -10];
-            bounds.eventgroup(iphase).upper = [zeros(2.21,5), params.yR, 0];
+            bounds.eventgroup(iphase).upper = [zeros(1,5), params.yR, 0];
     end
 end
 
@@ -116,8 +116,8 @@ bounds.eventgroup(iphase).upper = MaxTime;
 %----------Provide Mesh Refinement Method and Initial Mesh ---------------%
 %-------------------------------------------------------------------------%
 mesh.method          = 'hp-LiuRao-Legendre';
-mesh.maxiterations   = 10;
-mesh.tolerance       = 1e-6;
+mesh.maxiterations   = 0;
+mesh.tolerance       = 1e-3;
 mesh.colpointsmin    = 2;
 mesh.colpointsmax    = 14;
 for i = 1 : nphases
@@ -138,10 +138,11 @@ setup.guess                          = guess;
 setup.auxdata                        = auxdata;
 setup.mesh                           = mesh;
 setup.nlp.solver                     = 'ipopt';
-setup.nlp.snoptoptions.tolerance     = 1e-6;2.2
-setup.nlp.snoptoptions.maxiterations = 20;
+% setup.nlp.snoptoptions.tolerance     = 1e-6;
+% setup.nlp.snoptoptions.maxiterations = 20;
 setup.nlp.ipoptoptions.linear_solver = 'ma57';
 setup.nlp.ipoptoptions.tolerance     = 1e-6;
+setup.nlp.ipoptoptions.maxiterations = 5000;
 % setup.derivatives.supplier           = 'adigator';
 setup.derivatives.derivativelevel    = 'second';
 setup.method                         = 'RPM-Differentiation';

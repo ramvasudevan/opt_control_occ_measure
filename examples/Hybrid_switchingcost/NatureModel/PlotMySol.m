@@ -142,8 +142,8 @@ legend('l', 'ldot', 'theta', 'thetadot', 'u', 'phase');
 
 
 %% Generate initial guess
-nphases = 1;
-T_new = 0.8;
+nphases = 3;
+T_new = 3;
 len = nnz(t_hist < T_new/T);
 t_hist = t_hist( t_hist < T_new/T );
 for iphase = 1 : nphases
