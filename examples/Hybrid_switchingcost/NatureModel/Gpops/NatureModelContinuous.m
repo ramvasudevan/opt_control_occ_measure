@@ -23,15 +23,15 @@ for iphase = 1 : nphases
 %     keyboard;
     switch cmode
         case 1          % Mode 1
-            phaseout(iphase).dynamics = ( Swing_f_poly(x1', params) + Swing_g_poly(x1', params) * u1 )';
+            phaseout(iphase).dynamics = T * ( Swing_f_poly(x1', params) + Swing_g_poly(x1', params) * u1 )';
 %             phaseout(iphase).dynamics = ( Stance_f(x1') + Stance_g(x1') * u1' )';
             phaseout(iphase).integrand = u1 .^ 2;
-            phaseout(iphase).path = y;
+%             phaseout(iphase).path = y;
             
         case 2      	% Mode 2
-            phaseout(iphase).dynamics = ( Swing_f_poly(x1', params) + Swing_g_poly(x1', params) * u1 )';
+            phaseout(iphase).dynamics = T * ( Swing_f_poly(x1', params) + Swing_g_poly(x1', params) * u1 )';
             phaseout(iphase).integrand = u1 .^ 2;
-            phaseout(iphase).path = y;
+%             phaseout(iphase).path = y;
         otherwise
             disp('Something Wrong!!!');
     end

@@ -62,20 +62,22 @@ end
 % Terminal condition
 iphase = nphases;
 tf1 = input.phase(iphase).finaltime;
-output.eventgroup(iphase).event = [ tf1 - T ];
+output.eventgroup(iphase).event = [ tf1 ];
 
 % Objective function
 objective = 0;
-for i = 1 : nphases
+for iphase = 1 : nphases
+    cmode = mod(iphase,2) + 1;      % current mode
     xf1 = input.phase(iphase).finalstate;
-    if (cmode == 2) && (i ~= nphases)
+    if (cmode == 2) && (iphase ~= nphases)
         SwitchingCost = (xf1(1) * polysin(xf1(3)) + l0 * sin(-al) - input.auxdata.d_des)^2;
-        objective = objective + SwitchingCost;
+%         objective = objective + SwitchingCost;
     end
-    objective = objective + input.phase(i).integral;
+    objective = objective + input.phase(iphase).integral;
 end
 
 output.objective = objective;
+% output.objective = 0;
 
 %---------------------------------%
 % END: NatureModelEndpoint.m %

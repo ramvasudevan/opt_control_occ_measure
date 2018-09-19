@@ -5,6 +5,7 @@ if nargin < 2
     g = 9.8;
     l0 = 1;
     alpha = pi/6;
+    error('No params!');
 else
     m = params.m;
     g = params.g;

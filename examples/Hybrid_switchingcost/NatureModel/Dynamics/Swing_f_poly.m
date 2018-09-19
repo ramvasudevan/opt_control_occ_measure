@@ -4,6 +4,7 @@ if nargin < 2
     m = 1;
     g = 9.8;
     l0 = 1;
+    error('No params!');
 else
     m = params.m;
     g = params.g;
