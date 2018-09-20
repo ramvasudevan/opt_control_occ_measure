@@ -47,8 +47,8 @@ params.domain{2} =...
 %-------------------------------------------------------------------------%
 %-------------------------- Parameters for OCP ---------------------------%
 %-------------------------------------------------------------------------%
-d = 6;              % degree of relaxation
-T = 4;              % time horizon
+d = 8;              % degree of relaxation
+T = 6;              % time horizon
 nmodes = 2;         % number of modes
 
 % Solver options
@@ -141,11 +141,10 @@ x0{2} = [ 0.47; 0; 0; 0.85 ];
 hXT{1} = hX{1};
 hXT{2} = hX{2};
 
-tic;
-[out] = HybridOCPDualSolver_switching(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,c,d,options);
-toc;
 
-fprintf('Finished solving fixedIC, T4, deg 6\n');
+[out] = HybridOCPDualSolver_switching(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,c,d,options);
+
+fprintf('Finished solving fixedIC, T6, deg 8\n');
 save('Result_T4_fixedIC_deg6');
 
 PlotMySol;

@@ -10,8 +10,8 @@ clc;
 %-------------------------------------------------------------------------%
 %--------------- Provide All Physical Data for Problem -------------------%
 %-------------------------------------------------------------------------%
-T = 5;
-nphases = 5;
+T = 3;
+nphases = 2;
 x0 = [ 0.35, 0, 0, 0.85 ];
 
 auxdata = struct;
@@ -140,7 +140,7 @@ end
 setup.name                           = 'NatureModel_modified';
 setup.functions.continuous           = @NatureModelContinuous_Unscaled;
 setup.functions.endpoint             = @NatureModelEndpoint_Unscaled;
-setup.displaylevel                   = 0;
+setup.displaylevel                   = 2;
 setup.bounds                         = bounds;
 setup.guess                          = guess;
 setup.auxdata                        = auxdata;
@@ -200,5 +200,8 @@ legend('l','ldot','theta','thetadot','u');
 
 % plot(t_hist, control_hist);
 figure(8);
+hold on;
 plot(x_hist, y_hist);
+plot([0,1],[params.yR_lo, params.yR_lo], 'k--');
+plot([0,1],[params.yR_hi, params.yR_hi], 'k--');
 title('X-Y');

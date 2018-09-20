@@ -10,4 +10,5 @@ The following changes are made:
 	1->2:	y >= yRhigh
 	2->1: 	y <= yRlow
 
+Did not work well for us. Worked fine for gpops. Need to figure out why.
 
