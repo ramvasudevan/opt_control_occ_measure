@@ -148,30 +148,29 @@ figure(4);
 hold on;
 plot( t_hist, y_hist );
 plot( t_hist, ydot_hist );
-plot( [0, 1], [params.yR_lo, params.yR_lo], 'k--' );
-plot( [0, 1], [params.yR_hi, params.yR_hi], 'k--' );
+plot( [0, 1], [params.yR, params.yR], 'k--' );
 plot( [0, 1], [0,0], 'k--' );
 legend('y','ydot');
 
 
-% %% Generate initial guess
-% nphases = 4;
-% T_new = 4;
-% len = nnz(t_hist < T_new/T);
-% t_hist = t_hist( t_hist < T_new/T );
-% for iphase = 1 : nphases
-%     idx = find( phase_hist(1:len) == iphase );
-%     myguess.phase(iphase).time = t_hist( idx )*T_new;
-%     myguess.phase(iphase).state = state_hist( idx, : );
-%     myguess.phase(iphase).control = zeros( length(idx), 1 );
-%     for cnt = 1 : length(idx)
-%         cmode = mod(iphase,2)+1;
-%         myguess.phase(iphase).control(cnt) = controller{cmode}(t_hist( idx(cnt) ), state_hist( idx(cnt),: )');
-%     end
-%     
-% %     myguess.phase(iphase).time = t_hist( idx ) * T_new;
-% %     guess.phase(iphase).time = [dt*(iphase-1); dt*iphase ];
-% %     guess.phase(iphase).state = zeros( 2, 4 );
-% %     guess.phase(iphase).control = [0; 0];
-%     myguess.phase(iphase).integral = 0;
-% end
+%% Generate initial guess
+nphases = 4;
+T_new = 4;
+len = nnz(t_hist < T_new/T);
+t_hist = t_hist( t_hist < T_new/T );
+for iphase = 1 : nphases
+    idx = find( phase_hist(1:len) == iphase );
+    myguess.phase(iphase).time = t_hist( idx )*T_new;
+    myguess.phase(iphase).state = state_hist( idx, : );
+    myguess.phase(iphase).control = zeros( length(idx), 1 );
+    for cnt = 1 : length(idx)
+        cmode = mod(iphase,2)+1;
+        myguess.phase(iphase).control(cnt) = controller{cmode}(t_hist( idx(cnt) ), state_hist( idx(cnt),: )');
+    end
+    
+%     myguess.phase(iphase).time = t_hist( idx ) * T_new;
+%     guess.phase(iphase).time = [dt*(iphase-1); dt*iphase ];
+%     guess.phase(iphase).state = zeros( 2, 4 );
+%     guess.phase(iphase).control = [0; 0];
+    myguess.phase(iphase).integral = 0;
+end

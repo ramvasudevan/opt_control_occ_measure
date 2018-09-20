@@ -13,7 +13,7 @@ polycos = @(ang) 1 - ang.^2/2 + ang.^4/24;
 
 % keyboard;
 for iphase = 1 : nphases
-    idx = mod( iphase+1, 2 ) + 1;
+    idx = mod( iphase, 2 ) + 1;
     t1 = input.phase(iphase).time;
     x1 = input.phase(iphase).state;
     u1 = input.phase(iphase).control;

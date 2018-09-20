@@ -4,15 +4,15 @@
 % function [tval, xval] = SimNatureModel_walking( params, x0 )
 close all
 
-T = 4;
+T = 8;
 MaxTime = 1;
 % while isempty(x0{current_mode})
 %     current_mode = current_mode + 1;
 % end
-current_mode = 2;
+current_mode = 1;
 % xs = x0{current_mode}';
-xs = [ 0.47; 0; 0; 0.85 ];
-% xs = [ 0.47; 0; 0; 0 ];
+% xs = [ 0.47; 0; 0; 0.85 ];
+xs = [ 0.33; 0; 0; 1 ];
 
 previous_mode = 0;
 
@@ -25,8 +25,8 @@ controller  = cell(2,1);
 
 % controller{1} = @(tt,xx) max(0,min(umax,double(subs(out.u{1}, [t;x{1}], [tt;xx]))));
 % controller{2} = @(tt,xx) max(0,min(umax,double(subs(out.u{2}, [t;x{1}], [tt;xx]))));
-controller{1} = @(tt,xx) max(0, 5 * (params.l0 - xx(1) ));
-controller{2} = @(tt,xx) max(0, 5 * (params.l0 - xx(1) ));
+controller{1} = @(tt,xx) max(0, 3.3 * (params.l0 - xx(1) ));
+controller{2} = @(tt,xx) max(0, 3.3 * (params.l0 - xx(1) ));
 % controller{1} = @(tt,xx) 0;
 % controller{2} = @(tt,xx) 0;
 

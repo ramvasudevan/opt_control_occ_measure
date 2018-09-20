@@ -10,15 +10,14 @@ clc;
 %-------------------------------------------------------------------------%
 %--------------- Provide All Physical Data for Problem -------------------%
 %-------------------------------------------------------------------------%
-T = 5;
-nphases = 5;
-x0 = [ 0.35, 0, 0, 0.85 ];
+T = 4;
+nphases = 4;
+x0 = [ 0.47, 0, 0, 0.85 ];
 
 auxdata = struct;
 auxdata.params = params;
 auxdata.l0 = params.l0;
-auxdata.yR_lo = params.yR_lo;
-auxdata.yR_hi = params.yR_hi;
+auxdata.yR = params.yR;
 auxdata.nphases = nphases; 
 auxdata.T = T;
 auxdata.d_des = d_des;
@@ -30,7 +29,7 @@ auxdata.alpha = params.alpha;
 clear guess bounds mesh
 dt = (T/1.5) / nphases;
 for iphase = 1 : nphases
-    current_mode = mod( iphase+1, 2 ) + 1;
+    current_mode = mod( iphase, 2 ) + 1;
     domain = params.domain{current_mode};
     
     guess.phase(iphase).time = [ dt*(iphase-1); dt*iphase ];
@@ -55,7 +54,7 @@ t0 = 0;
 % Phase: 1 -> 2  (In gpops def)
 
 for iphase = 1 : nphases
-    idx = mod( iphase+1, 2 ) + 1;
+    idx = mod( iphase, 2 ) + 1;
     domain = params.domain{idx};
     bounds.phase(iphase).initialtime.lower = t0;
     bounds.phase(iphase).finaltime.upper = T;
@@ -86,12 +85,12 @@ for iphase = 1 : nphases
     bounds.phase(iphase).integral.upper = 100000;
     
     if (idx == 1)
-        % y \in [0, yR_hi]
+        % y \in [0, yR]
         bounds.phase(iphase).path.lower = 0;
-        bounds.phase(iphase).path.upper = params.yR_hi;
+        bounds.phase(iphase).path.upper = params.yR;
     else
-        % y \in [yR_lo, lmax]
-        bounds.phase(iphase).path.lower = params.yR_lo;
+        % y \in [yR, lmax]
+        bounds.phase(iphase).path.lower = params.yR;
         bounds.phase(iphase).path.upper = params.lmax;
     end
     bounds.phase(iphase).duration.lower = 0.05;
@@ -99,15 +98,15 @@ for iphase = 1 : nphases
 end
 
 for iphase = 1 : nphases-1
-    idx = mod( iphase+1, 2 ) + 1;
+    idx = mod( iphase, 2 ) + 1;
     switch idx
-        case 1              % {y<=yR_hi} -> {y>=yR_lo}
-            bounds.eventgroup(iphase).lower = zeros(1,6);
-            bounds.eventgroup(iphase).upper = zeros(1,6);
+        case 1              % {y<=yR} -> {y>=yR}
+            bounds.eventgroup(iphase).lower = zeros(1,7);
+            bounds.eventgroup(iphase).upper = [ zeros(1,6), 1000 ];     % 1000 is supposed to be ldotmax!!!
             
-        case 2              % {y>=yR_lo} -> {y<=yR_lo}
-            bounds.eventgroup(iphase).lower = zeros(1,6);
-            bounds.eventgroup(iphase).upper = zeros(1,6);
+        case 2              % {y<=yR} -> {y>=yR}
+            bounds.eventgroup(iphase).lower = [ zeros(1,6), -1000 ];
+            bounds.eventgroup(iphase).upper = zeros(1,7);
             
     end
 end
@@ -140,7 +139,7 @@ end
 setup.name                           = 'NatureModel_modified';
 setup.functions.continuous           = @NatureModelContinuous_Unscaled;
 setup.functions.endpoint             = @NatureModelEndpoint_Unscaled;
-setup.displaylevel                   = 0;
+setup.displaylevel                   = 2;
 setup.bounds                         = bounds;
 setup.guess                          = guess;
 setup.auxdata                        = auxdata;
@@ -169,23 +168,16 @@ toc
 state_hist_gpops = [];
 t_hist_gpops = [];
 control_hist_gpops = [];
-xoffset = [];
-previous_x = 0;
 for iphase = 1 : nphases
     t_hist_gpops = [ t_hist_gpops; output.result.solution.phase(iphase).time ];
     state_hist_gpops = [ state_hist_gpops; output.result.solution.phase(iphase).state ];
     control_hist_gpops = [ control_hist_gpops; output.result.solution.phase(iphase).control ];
-    xoffset = [ xoffset; previous_x * ones(length(output.result.solution.phase(iphase).time),1) ];
-    if (mod(iphase,2) == 0)
-        xf1 = state_hist_gpops( end, : );
-        previous_x = previous_x + xf1(1) * polysin(xf1(3)) + params.l0 * sin(-params.alpha);
-    end
 end
 l_hist = state_hist_gpops( :, 1 );
 ldot_hist = state_hist_gpops( :, 2 );
 theta_hist = state_hist_gpops( :, 3 );
 thetadot_hist = state_hist_gpops( :, 4 );
-x_hist = l_hist .* polysin( theta_hist ) + xoffset;
+x_hist = l_hist .* polysin( theta_hist );
 y_hist = l_hist .* polycos( theta_hist );
 figure(7);
 hold on;

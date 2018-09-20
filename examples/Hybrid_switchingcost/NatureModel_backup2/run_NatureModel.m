@@ -17,17 +17,14 @@ params.g        = 0.2;          % gravitational acceleration
 params.l0       = 0.5;          % leg length at touch-down
 params.lmax     = 1;            % maximum leg length
 
-params.alpha    =-pi/5;         % leg angle in flight phase = -30 degrees
-params.umax     = 1.2;          % upper bound of input
+params.alpha    =-pi/6;         % leg angle in flight phase = -30 degrees
+params.umax     = 1;          % upper bound of input
 
 %-------------------------------------------------------------------------%
 %-------------- Domains (Defined by Upper and Lower Bounds) --------------%
 %-------------------------------------------------------------------------%
-al = params.alpha;
-yR_lo = params.l0 * cos(al);        % touch-down height
-yR_hi = yR_lo + 0.02;
-params.yR_lo = yR_lo;
-params.yR_hi = yR_hi;
+yR  = params.l0 * cos(params.alpha);        % touch-down height
+params.yR = yR;
 lmax = params.lmax;
 
 
@@ -35,23 +32,23 @@ lmax = params.lmax;
 % state = ( l, l_dot, theta, theta_dot )
 params.domain{1} =...
         [ 0.1, lmax;        % l         - leg length
-         -0.6, 0.6;         % l_dot     - time derivative of l
-         -0.7, 1.2;         % theta     - leg angle
-         -0.1, 2 ];         % theta_dot - time derivative of theta
+         -0.5, 0.5;         % l_dot     - time derivative of l
+         -1.2, 1.2;           % theta     - leg angle
+            -0.1, 2 ];         % theta_dot - time derivative of theta
 
 % Mode 2: stance, y >= yR
 % state = ( l, l_dot, theta, theta_dot )
 params.domain{2} =...
         [ 0.1, lmax;        % l         - leg length
-         -0.6, 0.6;         % l_dot     - time derivative of l
-         -0.7, 1.2;         % theta     - leg angle
-         -0.1, 2 ];         % theta_dot - time derivative of theta
+         -0.5, 0.5;         % l_dot     - time derivative of l
+         -1.2, 1.2;           % theta     - leg angle
+            -0.1, 2 ];         % theta_dot - time derivative of theta
 
 %-------------------------------------------------------------------------%
 %-------------------------- Parameters for OCP ---------------------------%
 %-------------------------------------------------------------------------%
 d = 6;              % degree of relaxation
-T = 4;              % time horizon
+T = 3;              % time horizon
 nmodes = 2;         % number of modes
 
 % Solver options
@@ -104,33 +101,33 @@ polycos = @(ang) 1 - ang.^2/2 + ang.^4/24;
 y = xvar(1) * polycos(xvar(3));             % y = l * cos(theta)
 ydot = xvar(2) * polycos(xvar(3)) - xvar(1) * xvar(4) * polysin(xvar(3));   % y_dot = l_dot * cos(theta) - l * theta_dot * sin(theta)
 
-d_des = 1;        % desired step length
+d_des = 0.7;        % desired step length
 
-% Mode 1 : Stance (y <= yR_hi)
+% Mode 1 : Stance (y <= yR)
 hX{1} = [ domain{1}(:,2) - xvar;            % domain
           xvar - domain{1}(:,1);
-          yR_hi - y ];
+          yR - y ];
 hU{1} = uvar * (umax - uvar);
 R{1,2} = xvar;                              % reset map
 sX{1,2} = ...                               % guard
-        [ y - yR_hi;                       % y = yR
-          yR_hi - y;
-%           ydot;                         % ydot > 0
+        [ y - yR;                       % y = yR
+          yR - y;
+          ydot;                         % ydot > 0
           hX{1} ];                      % G \subset X
 c{1,2} = msspoly(0);
 h{1} = uvar^2;
 H{1} = msspoly(0);
 
-% Mode 2 : Stance (y >= yR_lo)
+% Mode 2 : Stance (y >= yR)
 hX{2} = [ domain{1}(:,2) - xvar;            % domain
           xvar - domain{1}(:,1);
-          y - yR_lo ];
+          y - yR ];
 hU{2} = uvar * (umax - uvar);
 R{2,1} = Reset_S2S_poly(xvar,params);       % reset map
 sX{2,1} = ...                               % guard
-        [ y - yR_lo;                       % y = yR
-          yR_lo - y;
-%           -ydot;                        % ydot < 0
+        [ y - yR;                       % y = yR
+          yR - y;
+          -ydot;                        % ydot < 0
           hX{2} ];                      % G \subset X                   % G \subset X
 c{2,1} = (xvar(1) * polysin(xvar(3)) + l0 * sin(-al) - d_des) ^ 2;        % step length = l * sin(theta) + l0 * sin(-alpha)
 h{2} = uvar^2;
