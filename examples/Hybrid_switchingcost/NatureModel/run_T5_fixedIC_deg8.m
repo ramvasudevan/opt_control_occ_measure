@@ -138,7 +138,7 @@ H{2} = msspoly(0);
 
 
 % Initial condition and Target Set
-x0{2} = [ 0.35; 0; 0; 0.85 ];
+x0{1} = [ 0.35; 0; 0; 0.85 ];
 
 % Target set is the entire space
 hXT{1} = hX{1};

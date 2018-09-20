@@ -50,8 +50,8 @@ params.domain{2} =...
 %-------------------------------------------------------------------------%
 %-------------------------- Parameters for OCP ---------------------------%
 %-------------------------------------------------------------------------%
-d = 8;              % degree of relaxation
-T = 8;              % time horizon
+d = 6;              % degree of relaxation
+T = 4;              % time horizon
 nmodes = 2;         % number of modes
 
 % Solver options
@@ -139,6 +139,7 @@ H{2} = msspoly(0);
 
 % Initial condition and Target Set
 x0{1} = [ 0.35; 0; 0; 0.85 ];
+hX0{1}
 
 % Target set is the entire space
 hXT{1} = hX{1};
@@ -146,6 +147,3 @@ hXT{2} = hX{2};
 
 
 [out] = HybridOCPDualSolver_switching(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,c,d,options);
-
-fprintf('Finished solving fixedIC, T%d, deg %d\n', T, d);
-save(['Result_T',num2str(T),'_fixedIC_deg',num2str(d)]);

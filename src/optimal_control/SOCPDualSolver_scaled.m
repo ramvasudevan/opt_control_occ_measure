@@ -1,4 +1,4 @@
-function [out] = SOCPDualSolver_scaled_dim1( t, y, u, fy, gy, sigma, dly0, hU, hy, Hy, degree, opts )
+function [out] = SOCPDualSolver_scaled( t, y, u, fy, gy, sigma, dly0, hU, hy, Hy, degree, opts )
 % 
 % We assume a change of variables:      x = arctanh( y )
 % or equivalently,                      y = tanh( x )
