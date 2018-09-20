@@ -5,16 +5,14 @@
 % 
 
 % clear;
-% clc;
+clc;
 
 %-------------------------------------------------------------------------%
 %--------------- Provide All Physical Data for Problem -------------------%
 %-------------------------------------------------------------------------%
-T = 3;
-MaxTime = 1;
-nphases = 3;
-x0 = [ 0.47; 0; 0; 0.85 ];
-% x0 = [ 0.47; 0; 0; 0 ];
+T = 4;
+nphases = 4;
+x0 = [ 0.47, 0, 0, 0.85 ];
 
 auxdata = struct;
 auxdata.params = params;
@@ -22,18 +20,22 @@ auxdata.l0 = params.l0;
 auxdata.yR = params.yR;
 auxdata.nphases = nphases; 
 auxdata.T = T;
-auxdata.d_des = 0.6;        % desired step length
+auxdata.d_des = d_des;
+auxdata.alpha = params.alpha;
 
 %-------------------------------------------------------------------------%
 %----------------- Generate Initial Guess for Problem --------------------%
 %-------------------------------------------------------------------------%
-clear guess bounds mesh setup
-dt = (MaxTime) / nphases;
+clear guess bounds mesh
+dt = (T/1.5) / nphases;
 for iphase = 1 : nphases
+    current_mode = mod( iphase, 2 ) + 1;
+    domain = params.domain{current_mode};
     
-    guess.phase(iphase).time = [dt*(iphase-1); dt*iphase ];
-    guess.phase(iphase).state = zeros( 2, 4 );
-    guess.phase(iphase).control = [0; 0];
+    guess.phase(iphase).time = [ dt*(iphase-1); dt*iphase ];
+    guess.phase(iphase).state = [ ( domain(:,2) + domain(:,1) )' / 2;
+                                  ( domain(:,2) + domain(:,1) )' / 2 ];
+    guess.phase(iphase).control = [ 0; 0 ];
     guess.phase(iphase).integral = 0;
 end
 
@@ -44,105 +46,103 @@ guess = myguess;
 %-------------------------------------------------------------------------%
 
 t0 = 0;
-MaxTime = 1;
 
-% Mode: 2 -> 1 -> 2 -> 1 (in spotless def)
-% Phase: 1 -> 2 -> 3 -> 4 (In gpops def)
+% Mode:  2 -> 1  (In spotless def)
+% Phase: 1 -> 2  (In gpops def)
 
 for iphase = 1 : nphases
-    cmode = mod(iphase,2) + 1;      % current mode
-    
+    idx = mod( iphase, 2 ) + 1;
+    domain = params.domain{idx};
     bounds.phase(iphase).initialtime.lower = t0;
-    bounds.phase(iphase).initialtime.upper = MaxTime;
-    bounds.phase(iphase).finaltime.lower = t0;
-    bounds.phase(iphase).finaltime.upper = MaxTime;
-    bounds.phase(iphase).initialstate.lower = params.domain{cmode}(:,1)';
-    bounds.phase(iphase).initialstate.upper = params.domain{cmode}(:,2)';
-    bounds.phase(iphase).state.lower        = params.domain{cmode}(:,1)';
-    bounds.phase(iphase).state.upper        = params.domain{cmode}(:,2)';
-    bounds.phase(iphase).finalstate.lower   = params.domain{cmode}(:,1)';
-    bounds.phase(iphase).finalstate.upper   = params.domain{cmode}(:,2)';
-    
-    
-    if (iphase == 1)
+    bounds.phase(iphase).finaltime.upper = T;
+    if iphase == 1
         bounds.phase(iphase).initialtime.upper = t0;
-        bounds.phase(iphase).initialstate.lower = x0';
-        bounds.phase(iphase).initialstate.upper = x0';
+    else
+        bounds.phase(iphase).initialtime.upper = T; 
     end
-    if (iphase == nphases)
-        bounds.phase(iphase).finaltime.lower = MaxTime;
+    if iphase == nphases
+        bounds.phase(iphase).finaltime.lower = T;
+    else
+        bounds.phase(iphase).finaltime.lower = t0;
     end
+    if iphase == 1
+        bounds.phase(iphase).initialstate.lower = x0;
+        bounds.phase(iphase).initialstate.upper = x0;
+    else
+        bounds.phase(iphase).initialstate.lower = domain(:,1)';
+        bounds.phase(iphase).initialstate.upper = domain(:,2)';
+    end
+    bounds.phase(iphase).state.lower = domain(:,1)';
+    bounds.phase(iphase).state.upper = domain(:,2)';
+    bounds.phase(iphase).finalstate.lower = domain(:,1)';
+    bounds.phase(iphase).finalstate.upper = domain(:,2)';
     bounds.phase(iphase).control.lower = 0;
-    bounds.phase(iphase).control.upper = params.umax;
-    bounds.phase(iphase).integral.lower = -1000;
-    bounds.phase(iphase).integral.upper = 1000;
-%     if (cmode == 1)
-%         % y \in [0, yR]
-%         bounds.phase(iphase).path.lower = 0;
-%         bounds.phase(iphase).path.upper = params.yR;
-%     else
-%         % y \in [yR, lmax]
-%         bounds.phase(iphase).path.lower = params.yR;
-%         bounds.phase(iphase).path.upper = params.lmax;
-%     end
+    bounds.phase(iphase).control.upper = 1;
+    bounds.phase(iphase).integral.lower = -100000;
+    bounds.phase(iphase).integral.upper = 100000;
     
-%     bounds.phase(iphase).duration.lower = 0.1;
-%     bounds.phase(iphase).duration.upper = MaxTime;
-    
+    if (idx == 1)
+        % y \in [0, yR]
+        bounds.phase(iphase).path.lower = 0;
+        bounds.phase(iphase).path.upper = params.yR;
+    else
+        % y \in [yR, lmax]
+        bounds.phase(iphase).path.lower = params.yR;
+        bounds.phase(iphase).path.upper = params.lmax;
+    end
 end
 
 for iphase = 1 : nphases-1
-    cmode = mod(iphase,2) + 1;      % current mode
-    switch cmode
-        case 1              % Mode 1 -> Mode 2
-            % y = yR, ydot > 0
-            bounds.eventgroup(iphase).lower = [zeros(1,5), params.yR, 0.01];
-            bounds.eventgroup(iphase).upper = [zeros(1,5), params.yR, 10 ];
+    idx = mod( iphase, 2 ) + 1;
+    switch idx
+        case 1              % {y<=yR} -> {y>=yR}
+            bounds.eventgroup(iphase).lower = zeros(1,7);
+            bounds.eventgroup(iphase).upper = [ zeros(1,6), 1000 ];     % 1000 is supposed to be ldotmax!!!
             
-        case 2              % Mode 1 -> Mode 2
-            % y = yR, ydot < 0
-            bounds.eventgroup(iphase).lower = [zeros(1,5), params.yR, -10];
-            bounds.eventgroup(iphase).upper = [zeros(1,5), params.yR, 0];
+        case 2              % {y<=yR} -> {y>=yR}
+            bounds.eventgroup(iphase).lower = [ zeros(1,6), -1000 ];
+            bounds.eventgroup(iphase).upper = zeros(1,7);
+            
     end
 end
 
 % Terminal condition
-% t_final = T
 iphase = nphases;
-bounds.eventgroup(iphase).lower = MaxTime;
-bounds.eventgroup(iphase).upper = MaxTime;
+bounds.eventgroup(iphase).lower = 0;
+bounds.eventgroup(iphase).upper = 1000;
+
+%-------------------------------------------------------------------------%
+%------- Initial Guess of Solution Should be Provided by run_sim ---------%
+%-------------------------------------------------------------------------%
+
 
 %-------------------------------------------------------------------------%
 %----------Provide Mesh Refinement Method and Initial Mesh ---------------%
 %-------------------------------------------------------------------------%
 mesh.method          = 'hp-LiuRao-Legendre';
-mesh.maxiterations   = 0;
-mesh.tolerance       = 1e-3;
-mesh.colpointsmin    = 2;
-mesh.colpointsmax    = 14;
+% mesh.maxiterations   = 45;
+mesh.tolerance       = 1e-7;
 for i = 1 : nphases
-    mesh.phase(i).colpoints = 4 * ones(1,10);
-    mesh.phase(i).fraction = 0.1 * ones(1,10);
+    mesh.phase(i).colpoints = 10 * ones(1,100);
+    mesh.phase(i).fraction = 0.01 * ones(1,100);
 end
 
 
 %-------------------------------------------------------------------------%
 %------------- Assemble Information into Problem Structure ---------------%        
 %-------------------------------------------------------------------------%
-setup.name                           = 'NatureModel_minimize_u2';
-setup.functions.continuous           = @NatureModelContinuous;
-setup.functions.endpoint             = @NatureModelEndpoint;
+setup.name                           = 'NatureModel_modified';
+setup.functions.continuous           = @NatureModelContinuous_Unscaled;
+setup.functions.endpoint             = @NatureModelEndpoint_Unscaled;
 setup.displaylevel                   = 2;
 setup.bounds                         = bounds;
 setup.guess                          = guess;
 setup.auxdata                        = auxdata;
 setup.mesh                           = mesh;
 setup.nlp.solver                     = 'ipopt';
-% setup.nlp.snoptoptions.tolerance     = 1e-6;
-% setup.nlp.snoptoptions.maxiterations = 20;
+setup.nlp.ipoptoptions.maxiterations = 200;
 setup.nlp.ipoptoptions.linear_solver = 'ma57';
-setup.nlp.ipoptoptions.tolerance     = 1e-6;
-setup.nlp.ipoptoptions.maxiterations = 5000;
+setup.nlp.ipoptoptions.tolerance     = 1e-10;
 % setup.derivatives.supplier           = 'adigator';
 setup.derivatives.derivativelevel    = 'second';
 setup.method                         = 'RPM-Differentiation';

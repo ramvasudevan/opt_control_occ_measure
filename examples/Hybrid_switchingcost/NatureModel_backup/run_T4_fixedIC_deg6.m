@@ -12,7 +12,7 @@
 %-------------------------------------------------------------------------%
 params = struct();
 
-params.m        = 1;            % mass
+params.m        = 0.2;            % mass
 params.g        = 0.2;          % gravitational acceleration
 params.l0       = 0.5;          % leg length at touch-down
 params.lmax     = 1;            % maximum leg length
@@ -48,7 +48,7 @@ params.domain{2} =...
 %-------------------------- Parameters for OCP ---------------------------%
 %-------------------------------------------------------------------------%
 d = 6;              % degree of relaxation
-T = 3;              % time horizon
+T = 4;              % time horizon
 nmodes = 2;         % number of modes
 
 % Solver options
@@ -135,11 +135,17 @@ H{2} = msspoly(0);
 
 
 % Initial condition and Target Set
-x0{2} = [ l0; 0; 0; 0.1 ];
+x0{2} = [ 0.47; 0; 0; 0.85 ];
 
 % Target set is the entire space
 hXT{1} = hX{1};
 hXT{2} = hX{2};
 
-
+tic;
 [out] = HybridOCPDualSolver_switching(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,c,d,options);
+toc;
+
+fprintf('Finished solving fixedIC, T4, deg 6\n');
+save('Result_T4_fixedIC_deg6');
+
+PlotMySol;

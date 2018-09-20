@@ -12,7 +12,7 @@
 %-------------------------------------------------------------------------%
 params = struct();
 
-params.m        = 0.2;            % mass
+params.m        = 1;            % mass
 params.g        = 0.2;          % gravitational acceleration
 params.l0       = 0.5;          % leg length at touch-down
 params.lmax     = 1;            % maximum leg length
@@ -101,7 +101,7 @@ polycos = @(ang) 1 - ang.^2/2 + ang.^4/24;
 y = xvar(1) * polycos(xvar(3));             % y = l * cos(theta)
 ydot = xvar(2) * polycos(xvar(3)) - xvar(1) * xvar(4) * polysin(xvar(3));   % y_dot = l_dot * cos(theta) - l * theta_dot * sin(theta)
 
-d_des = 0.6;        % desired step length
+d_des = 0.7;        % desired step length
 
 % Mode 1 : Stance (y <= yR)
 hX{1} = [ domain{1}(:,2) - xvar;            % domain
@@ -145,7 +145,7 @@ tic;
 [out] = HybridOCPDualSolver_switching(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,c,d,options);
 toc;
 
-printf('Finished solving fixedIC, T4, deg 6');
+fprintf('Finished solving fixedIC, T4, deg 6\n');
 save('Result_T4_fixedIC_deg6');
 
 PlotMySol;

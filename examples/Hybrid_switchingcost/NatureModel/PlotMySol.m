@@ -116,13 +116,16 @@ end
 
 %% plot states
 l_hist = state_hist( :, 1 );
+ldot_hist = state_hist( :, 2 );
 theta_hist = state_hist( :, 3 );
+thetadot_hist = state_hist( :, 4 );
 x_hist = origin_hist + l_hist .* polysin( theta_hist );
 y_hist = l_hist .* polycos( theta_hist );
 u_hist = zeros( length(t_hist), 1 );
 for i = 1 : length(t_hist)
     u_hist(i) = controller{mode_hist(i)}(t_hist(i), state_hist(i,:)');
 end
+ydot_hist = ldot_hist .* polycos( theta_hist ) - l_hist .* thetadot_hist .* polysin( theta_hist );
 
 % Figure 2 shows x-y
 figure(2);
@@ -140,15 +143,24 @@ plot( t_hist, u_hist );
 plot( t_hist, phase_hist );
 legend('l', 'ldot', 'theta', 'thetadot', 'u', 'phase');
 
+% figure 4 shows guard conditions (i.e. y and ydot)
+figure(4);
+hold on;
+plot( t_hist, y_hist );
+plot( t_hist, ydot_hist );
+plot( [0, 1], [params.yR, params.yR], 'k--' );
+plot( [0, 1], [0,0], 'k--' );
+legend('y','ydot');
+
 
 %% Generate initial guess
-nphases = 3;
-T_new = 3;
+nphases = 4;
+T_new = 4;
 len = nnz(t_hist < T_new/T);
 t_hist = t_hist( t_hist < T_new/T );
 for iphase = 1 : nphases
     idx = find( phase_hist(1:len) == iphase );
-    myguess.phase(iphase).time = t_hist( idx );
+    myguess.phase(iphase).time = t_hist( idx )*T_new;
     myguess.phase(iphase).state = state_hist( idx, : );
     myguess.phase(iphase).control = zeros( length(idx), 1 );
     for cnt = 1 : length(idx)
@@ -156,7 +168,7 @@ for iphase = 1 : nphases
         myguess.phase(iphase).control(cnt) = controller{cmode}(t_hist( idx(cnt) ), state_hist( idx(cnt),: )');
     end
     
-    myguess.phase(iphase).time = t_hist( idx ) / 0.55;
+%     myguess.phase(iphase).time = t_hist( idx ) * T_new;
 %     guess.phase(iphase).time = [dt*(iphase-1); dt*iphase ];
 %     guess.phase(iphase).state = zeros( 2, 4 );
 %     guess.phase(iphase).control = [0; 0];
