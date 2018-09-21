@@ -98,8 +98,10 @@ domain  = params.domain;
 l0      = params.l0;
 umax    = params.umax;
 al      = params.alpha;
-polysin = @(ang) ang - ang.^3/6 + ang.^5/120;
-polycos = @(ang) 1 - ang.^2/2 + ang.^4/24;
+% polysin = @(ang) ang - ang.^3/6 + ang.^5/120;
+% polycos = @(ang) 1 - ang.^2/2 + ang.^4/24;
+polysin = @(ang) ang - ang.^3/6;
+polycos = @(ang) 1 - ang.^2/2;
 
 y = xvar(1) * polycos(xvar(3));             % y = l * cos(theta)
 ydot = xvar(2) * polycos(xvar(3)) - xvar(1) * xvar(4) * polysin(xvar(3));   % y_dot = l_dot * cos(theta) - l * theta_dot * sin(theta)

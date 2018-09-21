@@ -5,7 +5,7 @@ polysin = @(ang) ang - ang^3/6 + ang^5/120;
 polycos = @(ang) 1 - ang^2/2 + ang^4/24;
 
 y = x(1) * polycos(x(3));
-yR_hi = params.yR_hi-0.005;
+yR_hi = params.yR_hi;
 
 isterminal = 1;
 direction = 1;

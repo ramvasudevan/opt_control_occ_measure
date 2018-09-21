@@ -4,8 +4,8 @@
 % function [tval, xval] = SimNatureModel_walking( params, x0 )
 close all
 
-MaxTime = 1.5;
-current_mode = 1;
+MaxTime = 1;
+current_mode = 2;
 while isempty(x0{current_mode})
     current_mode = current_mode + 1;
 end

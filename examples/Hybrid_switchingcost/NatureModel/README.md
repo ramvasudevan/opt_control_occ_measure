@@ -22,3 +22,4 @@ yR_hi: yR_lo+0.02 -> yR_lo+0.04
 
 The following changes are made based on backup3:
 polynomial dynamics now have degree 3.
+yR.hi = yR.lo+0.02

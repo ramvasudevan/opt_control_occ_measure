@@ -140,7 +140,7 @@ end
 setup.name                           = 'NatureModel_modified';
 setup.functions.continuous           = @NatureModelContinuous_Unscaled;
 setup.functions.endpoint             = @NatureModelEndpoint_Unscaled;
-setup.displaylevel                   = 2;
+setup.displaylevel                   = 0;
 setup.bounds                         = bounds;
 setup.guess                          = guess;
 setup.auxdata                        = auxdata;
@@ -200,8 +200,5 @@ legend('l','ldot','theta','thetadot','u');
 
 % plot(t_hist, control_hist);
 figure(8);
-hold on;
 plot(x_hist, y_hist);
-plot([0,1],[params.yR_lo, params.yR_lo], 'k--');
-plot([0,1],[params.yR_hi, params.yR_hi], 'k--');
 title('X-Y');

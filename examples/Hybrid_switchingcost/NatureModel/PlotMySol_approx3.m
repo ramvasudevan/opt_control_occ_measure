@@ -4,7 +4,7 @@
 % function [tval, xval] = SimNatureModel_walking( params, x0 )
 close all
 
-MaxTime = 1.5;
+MaxTime = 1;
 current_mode = 1;
 while isempty(x0{current_mode})
     current_mode = current_mode + 1;
@@ -27,15 +27,15 @@ controller{2} = @(tt,xx) max(0,min(umax,double(subs(out.u{2}, [t;x{1}], [tt;xx])
 % controller{1} = @(tt,xx) 0;
 % controller{2} = @(tt,xx) 0;
 
-Dyn{1} = @(tt,xx) T * ( Swing_f_poly(xx,params) + Swing_g_poly(xx,params) * controller{1}(tt,xx) );
-Dyn{2} = @(tt,xx) T * ( Swing_f_poly(xx,params) + Swing_g_poly(xx,params) * controller{2}(tt,xx) );
+Dyn{1} = @(tt,xx) T * ( Swing_f_poly3(xx,params) + Swing_g_poly(xx,params) * controller{1}(tt,xx) );
+Dyn{2} = @(tt,xx) T * ( Swing_f_poly3(xx,params) + Swing_g_poly(xx,params) * controller{2}(tt,xx) );
 % Dyn{1} = @(tt,xx) T * ( Swing_f(xx,params) + Swing_g_poly(xx,params) * controller{1}(tt,xx) );
 % Dyn{2} = @(tt,xx) T * ( Swing_f(xx,params) + Swing_g_poly(xx,params) * controller{2}(tt,xx) );
 
 % Reset maps
 ResetMap = cell(2,2);
 ResetMap{1,2} = @(xx) xx;
-ResetMap{2,1} = @(xx) Reset_S2S_poly( xx, params );
+ResetMap{2,1} = @(xx) Reset_S2S_poly3( xx, params );
 
 % Simulate af!
 state_hist = [];        % [ l, ldot, theta, thetadot ]
@@ -53,7 +53,7 @@ while current_time < MaxTime - 0.01
     disp(current_mode);
     switch current_mode
         case 1
-            options = odeset('Events',@(tt,xx) EvtFunc12(tt,xx,params));
+            options = odeset('Events',@(tt,xx) EvtFunc12_approx3(tt,xx,params));
             options = odeset(options,'AbsTol',1e-9,'RelTol',1e-8);
             [ tout, xout, event_time, event_state, event_id ] = ...
                 ode45(Dyn{1}, (current_time : 1e-3 : MaxTime), xs, options);
@@ -80,7 +80,7 @@ while current_time < MaxTime - 0.01
             phase_hist = [ phase_hist; ones( length(tout), 1 ) * current_phase ];
             current_phase = current_phase + 1;
         case 2
-            options = odeset('Events',@(tt,xx) EvtFunc21(tt,xx,params));
+            options = odeset('Events',@(tt,xx) EvtFunc21_approx3(tt,xx,params));
             options = odeset(options,'AbsTol',1e-9,'RelTol',1e-8);
             [ tout, xout, event_time, event_state, event_id ] = ...
                 ode45(Dyn{2}, (current_time : 1e-3 : MaxTime), xs, options);

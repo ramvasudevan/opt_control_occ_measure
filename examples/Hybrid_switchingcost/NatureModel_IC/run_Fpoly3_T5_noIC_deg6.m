@@ -25,7 +25,7 @@ params.umax     = 1;          % upper bound of input
 %-------------------------------------------------------------------------%
 al = params.alpha;
 yR_lo = params.l0 * cos(al);        % touch-down height
-yR_hi = yR_lo + 0.02;
+yR_hi = yR_lo + 0.04;
 params.yR_lo = yR_lo;
 params.yR_hi = yR_hi;
 lmax = params.lmax;
@@ -51,7 +51,7 @@ params.domain{2} =...
 %-------------------------- Parameters for OCP ---------------------------%
 %-------------------------------------------------------------------------%
 d = 6;              % degree of relaxation
-T = 4;              % time horizon
+T = 5;              % time horizon
 nmodes = 2;         % number of modes
 
 % Solver options
@@ -89,7 +89,7 @@ u{2} = uvar;
 
 % Dynamics
 for i = 1 : 2
-    f{i} = T * Swing_f_poly( x{i}, params );
+    f{i} = T * Swing_f_poly3( x{i}, params );
     g{i} = T * Swing_g_poly( x{i}, params );
 end
 
@@ -98,6 +98,8 @@ domain  = params.domain;
 l0      = params.l0;
 umax    = params.umax;
 al      = params.alpha;
+% polysin = @(ang) ang - ang.^3/6 + ang.^5/120;
+% polycos = @(ang) 1 - ang.^2/2 + ang.^4/24;
 polysin = @(ang) ang - ang.^3/6;
 polycos = @(ang) 1 - ang.^2/2;
 
@@ -126,7 +128,7 @@ hX{2} = [ domain{1}(:,2) - xvar;            % domain
           xvar - domain{1}(:,1);
           y - yR_lo ];
 hU{2} = uvar * (umax - uvar);
-R{2,1} = Reset_S2S_poly(xvar,params);       % reset map
+R{2,1} = Reset_S2S_poly3(xvar,params);       % reset map
 sX{2,1} = ...                               % guard
         [ y - yR_lo;                       % y = yR
           yR_lo - y;
@@ -138,11 +140,19 @@ H{2} = msspoly(0);
 
 
 % Initial condition and Target Set
-x0{2} = [ l0; 0; 0; 0.1 ];
+x0{1} = [ 0.35; 0; 0; 0.85 ];
+x0_ub = [0.35; 0; 0; 1.2];
+x0_lb = [0.35; 0; 0; 0.7];
+hX0{1} = [ x0_ub - xvar
+           xvar - x0_lb ];
 
 % Target set is the entire space
 hXT{1} = hX{1};
-hXT{2} = hX{2};
+% hXT{2} = hX{2};
 
 
-[out] = HybridOCPDualSolver_switching(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,c,d,options);
+% [out] = HybridOCPDualSolver_switching(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,c,d,options);
+[out] = HybridOCPDualSolver_switching_IC(t,x,u,f,g,hX,hU,sX,R,hX0,hXT,h,H,c,d,options);
+
+fprintf('Finished solving noIC, T%d, deg %d, F approx 3.\n', T, d);
+save(['Result_Fpoly3_T',num2str(T),'_noIC_deg',num2str(d)]);

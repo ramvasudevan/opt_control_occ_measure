@@ -18,7 +18,7 @@ params.l0       = 0.5;          % leg length at touch-down
 params.lmax     = 1;            % maximum leg length
 
 params.alpha    =-pi/5;         % leg angle in flight phase = -30 degrees
-params.umax     = 1;          % upper bound of input
+params.umax     = 1.2;          % upper bound of input
 
 %-------------------------------------------------------------------------%
 %-------------- Domains (Defined by Upper and Lower Bounds) --------------%
@@ -98,8 +98,8 @@ domain  = params.domain;
 l0      = params.l0;
 umax    = params.umax;
 al      = params.alpha;
-polysin = @(ang) ang - ang.^3/6;
-polycos = @(ang) 1 - ang.^2/2;
+polysin = @(ang) ang - ang.^3/6 + ang.^5/120;
+polycos = @(ang) 1 - ang.^2/2 + ang.^4/24;
 
 y = xvar(1) * polycos(xvar(3));             % y = l * cos(theta)
 ydot = xvar(2) * polycos(xvar(3)) - xvar(1) * xvar(4) * polysin(xvar(3));   % y_dot = l_dot * cos(theta) - l * theta_dot * sin(theta)
@@ -138,7 +138,8 @@ H{2} = msspoly(0);
 
 
 % Initial condition and Target Set
-x0{2} = [ l0; 0; 0; 0.1 ];
+x0{1} = [ 0.35; 0; 0; 0.85 ];
+hX0{1}
 
 % Target set is the entire space
 hXT{1} = hX{1};
