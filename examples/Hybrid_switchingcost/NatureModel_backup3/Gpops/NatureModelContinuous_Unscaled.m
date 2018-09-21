@@ -8,8 +8,8 @@ params = input.auxdata.params;
 T = input.auxdata.T;
 phaseout = struct('dynamics',cell(1,nphases),'integrand',cell(1,nphases));
 
-polysin = @(ang) ang - ang.^3/6;
-polycos = @(ang) 1 - ang.^2/2;
+polysin = @(ang) ang - ang.^3/6 + ang.^5/120;
+polycos = @(ang) 1 - ang.^2/2 + ang.^4/24;
 
 % keyboard;
 for iphase = 1 : nphases
@@ -22,12 +22,12 @@ for iphase = 1 : nphases
 %     keyboard;
     switch idx
         case 1          % Stance phase, y<=yR
-            phaseout(iphase).dynamics = ( Swing_f_poly3(x1', params) + Swing_g_poly(x1', params) * u1' )';
+            phaseout(iphase).dynamics = ( Swing_f_poly(x1', params) + Swing_g_poly(x1', params) * u1' )';
 %             phaseout(iphase).dynamics = ( Swing_f(x1', params) + Swing_g_poly(x1', params) * u1' )';
             phaseout(iphase).integrand = (u1) .^ 2;
             phaseout(iphase).path = y;
         case 2          % Stance phase, y>=yR
-            phaseout(iphase).dynamics = ( Swing_f_poly3(x1', params) + Swing_g_poly(x1', params) * u1' )';
+            phaseout(iphase).dynamics = ( Swing_f_poly(x1', params) + Swing_g_poly(x1', params) * u1' )';
 %             phaseout(iphase).dynamics = ( Swing_f(x1', params) + Swing_g_poly(x1', params) * u1' )';
             phaseout(iphase).integrand = (u1) .^ 2;
             phaseout(iphase).path = y;

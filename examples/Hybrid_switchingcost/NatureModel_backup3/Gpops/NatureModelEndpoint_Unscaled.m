@@ -12,8 +12,8 @@ al = input.auxdata.alpha;
 T = input.auxdata.T;
 polyflag = 1;
 
-polysin = @(ang) ang - ang.^3/6;
-polycos = @(ang) 1 - ang.^2/2;
+polysin = @(ang) ang - ang.^3/6 + ang.^5/120;
+polycos = @(ang) 1 - ang.^2/2 + ang.^4/24;
 
 objective = 0;
 
@@ -54,7 +54,7 @@ for iphase = 1 : nphases-1
             G = y - yR_lo;
             % Reset: R
 %             R = Reset_S2S( xf1', params )';
-            R = Reset_S2S_poly3( xf1', params )';
+            R = Reset_S2S_poly( xf1', params )';
             output.eventgroup(iphase).event = [ t02 - tf1, x02 - R, G ];
             % The bounds should be: (0, zeros(1,4), 0) ~ (0, zeros(1,4), 0)
             

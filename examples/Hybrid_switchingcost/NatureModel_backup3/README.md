@@ -3,7 +3,7 @@ The following changes are made in backup2:
 * m = 1 now (as opposed to 0.2 in the previous version)
 * desired step length is d_des = 0.7 now (as opposed to 0.6 in the previous version)
 
-The following changes are made in backup3:
+The following changes are made:
 
 * Trajectories now start from mode 1, with l = locally minimum l, ldot = 0, theta = 0, thetadot > 0
 * To make sure mode 2 lasts for long enough time, the guards are defined as:
@@ -20,5 +20,3 @@ To make it work, I made the following changes:
 yR_hi: yR_lo+0.02 -> yR_lo+0.04
 
 
-The following changes are made based on backup3:
-polynomial dynamics now have degree 3.

@@ -25,7 +25,7 @@ params.umax     = 1;          % upper bound of input
 %-------------------------------------------------------------------------%
 al = params.alpha;
 yR_lo = params.l0 * cos(al);        % touch-down height
-yR_hi = yR_lo + 0.02;
+yR_hi = yR_lo + 0.04;
 params.yR_lo = yR_lo;
 params.yR_hi = yR_hi;
 lmax = params.lmax;
@@ -98,8 +98,8 @@ domain  = params.domain;
 l0      = params.l0;
 umax    = params.umax;
 al      = params.alpha;
-polysin = @(ang) ang - ang.^3/6;
-polycos = @(ang) 1 - ang.^2/2;
+polysin = @(ang) ang - ang.^3/6 + ang.^5/120;
+polycos = @(ang) 1 - ang.^2/2 + ang.^4/24;
 
 y = xvar(1) * polycos(xvar(3));             % y = l * cos(theta)
 ydot = xvar(2) * polycos(xvar(3)) - xvar(1) * xvar(4) * polysin(xvar(3));   % y_dot = l_dot * cos(theta) - l * theta_dot * sin(theta)
