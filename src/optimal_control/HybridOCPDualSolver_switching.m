@@ -52,10 +52,10 @@ function [out] = HybridOCPDualSolver_switching(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,c
 % 
 
 %% Sanity check
-if mod(d,2) ~= 0
-    warning('d is not even. Using d+1 instead.');
-    d = d+1;
-end
+% if mod(d,2) ~= 0
+%     warning('d is not even. Using d+1 instead.');
+%     d = d+1;
+% end
 nmodes = length(x);
 
 max_m = 0;

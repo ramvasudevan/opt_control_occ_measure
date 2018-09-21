@@ -12,3 +12,11 @@ The following changes are made:
 
 Did not work well for us. Worked fine for gpops. Need to figure out why.
 
+
+In ./EarlierResults are the results that didn't work.
+To make it work, I made the following changes:
+* umax: 1.2 -> 1
+* hXT{2}: hX{2} -> []
+yR_hi: yR_lo+0.02 -> yR_lo+0.04
+
+

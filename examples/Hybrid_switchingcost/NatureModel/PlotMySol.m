@@ -5,7 +5,7 @@
 close all
 
 MaxTime = 1;
-current_mode = 2;
+current_mode = 1;
 while isempty(x0{current_mode})
     current_mode = current_mode + 1;
 end

@@ -18,14 +18,14 @@ params.l0       = 0.5;          % leg length at touch-down
 params.lmax     = 1;            % maximum leg length
 
 params.alpha    =-pi/5;         % leg angle in flight phase = -30 degrees
-params.umax     = 1.2;          % upper bound of input
+params.umax     = 1;          % upper bound of input
 
 %-------------------------------------------------------------------------%
 %-------------- Domains (Defined by Upper and Lower Bounds) --------------%
 %-------------------------------------------------------------------------%
 al = params.alpha;
 yR_lo = params.l0 * cos(al);        % touch-down height
-yR_hi = yR_lo + 0.02;
+yR_hi = yR_lo + 0.04;
 params.yR_lo = yR_lo;
 params.yR_hi = yR_hi;
 lmax = params.lmax;
@@ -142,7 +142,7 @@ x0{1} = [ 0.35; 0; 0; 0.85 ];
 
 % Target set is the entire space
 hXT{1} = hX{1};
-hXT{2} = hX{2};
+% hXT{2} = hX{2};
 
 
 [out] = HybridOCPDualSolver_switching(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,c,d,options);
