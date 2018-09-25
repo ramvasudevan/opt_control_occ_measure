@@ -4,15 +4,62 @@
 % by 'nphases'.
 % 
 
-% clear;
+clear;
 clc;
+
+%-------------------------------------------------------------------------%
+%------------------------ All Physical Parameters ------------------------%
+%-------------------------------------------------------------------------%
+params = struct();
+
+params.m        = 1;            % mass
+params.g        = 0.2;          % gravitational acceleration
+params.l0       = 0.5;          % leg length at touch-down
+params.lmax     = 1;            % maximum leg length
+
+params.alpha    =-pi/5;         % leg angle in flight phase = -30 degrees
+params.umax     = 1;          % upper bound of input
+
+%-------------------------------------------------------------------------%
+%-------------- Domains (Defined by Upper and Lower Bounds) --------------%
+%-------------------------------------------------------------------------%
+al = params.alpha;
+yR_lo = params.l0 * cos(al);        % touch-down height
+yR_hi = yR_lo + 0.04;
+params.yR_lo = yR_lo;
+params.yR_hi = yR_hi;
+lmax = params.lmax;
+
+
+% Mode 1: stance, y <= yR
+% state = ( l, l_dot, theta, theta_dot )
+params.domain{1} =...
+        [ 0.1, lmax;        % l         - leg length
+         -0.6, 0.6;         % l_dot     - time derivative of l
+         -0.7, 1.3;         % theta     - leg angle
+         -0.1, 2 ];         % theta_dot - time derivative of theta
+
+% Mode 2: stance, y >= yR
+% state = ( l, l_dot, theta, theta_dot )
+params.domain{2} =...
+        [ 0.1, lmax;        % l         - leg length
+         -0.6, 0.6;         % l_dot     - time derivative of l
+         -0.7, 1.3;         % theta     - leg angle
+         -0.1, 2 ];         % theta_dot - time derivative of theta
+
 
 %-------------------------------------------------------------------------%
 %--------------- Provide All Physical Data for Problem -------------------%
 %-------------------------------------------------------------------------%
-T = 5;
+T = 7;
 nphases = 5;
 x0 = [ 0.35, 0, 0, 0.85 ];
+x0_ub = [0.35; 0; 0; 1.2]';
+x0_lb = [0.35; 0; 0; 0.7]';
+d_des = 1;
+
+polysin = @(ang) ang - ang.^3/6;
+polycos = @(ang) 1 - ang.^2/2;
 
 auxdata = struct;
 auxdata.params = params;
@@ -70,8 +117,8 @@ for iphase = 1 : nphases
         bounds.phase(iphase).finaltime.lower = t0;
     end
     if iphase == 1
-        bounds.phase(iphase).initialstate.lower = x0;
-        bounds.phase(iphase).initialstate.upper = x0;
+        bounds.phase(iphase).initialstate.lower = x0_lb;
+        bounds.phase(iphase).initialstate.upper = x0_ub;
     else
         bounds.phase(iphase).initialstate.lower = domain(:,1)';
         bounds.phase(iphase).initialstate.upper = domain(:,2)';
@@ -170,6 +217,7 @@ state_hist_gpops = [];
 t_hist_gpops = [];
 control_hist_gpops = [];
 xoffset = [];
+phase_hist_gpops = [];
 previous_x = 0;
 for iphase = 1 : nphases
     t_hist_gpops = [ t_hist_gpops; output.result.solution.phase(iphase).time ];
@@ -180,6 +228,7 @@ for iphase = 1 : nphases
         xf1 = state_hist_gpops( end, : );
         previous_x = previous_x + xf1(1) * polysin(xf1(3)) + params.l0 * sin(-params.alpha);
     end
+    phase_hist_gpops = [ phase_hist_gpops; iphase * ones(length( output.result.solution.phase(iphase).time ), 1) ];
 end
 l_hist = state_hist_gpops( :, 1 );
 ldot_hist = state_hist_gpops( :, 2 );

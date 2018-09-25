@@ -10,7 +10,7 @@ y = x(1) * polycos(x(3));
 yR_hi = params.yR_hi-0.02;
 yR_lo = params.yR_lo;
 
-isterminal = 1;
-direction = 1;
+isterminal = [ 1; 1 ];
+direction = [ 1; 0 ];
 % value = y - yR_hi;
-value = y - yR_lo;
+value = [ y - yR_lo; y ];

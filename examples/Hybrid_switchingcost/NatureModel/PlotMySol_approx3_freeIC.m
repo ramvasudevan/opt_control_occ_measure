@@ -2,19 +2,23 @@
 % walking (no flight phase)
 
 % function [tval, xval] = SimNatureModel_walking( params, x0 )
-close all
+% close all
 
 MaxTime = 1;
 current_mode = 1;
-while isempty(x0{current_mode})
-    current_mode = current_mode + 1;
-end
-xs = x0{current_mode}';
-
+% while isempty(x0{current_mode})
+%     current_mode = current_mode + 1;
+% end
+% xs = x0{current_mode}';
+% xs = [0.35; 0; 0; 0.73097];
+xs = [0.35; 0; 0; 0.85];
 previous_mode = 0;
 
-polysin = @(ang) ang - ang.^3/6;
-polycos = @(ang) 1 - ang.^2/2;
+% polysin = @(ang) ang - ang.^3/6;
+% polycos = @(ang) 1 - ang.^2/2;
+
+polysin = @(ang) sin(ang);
+polycos = @(ang) cos(ang);
 
 % Dynamics
 Dyn         = cell(2,1);
@@ -46,7 +50,7 @@ phase_hist = [];
 previous_origin = 0;
 current_time = 0;
 
-P = NatureModelPlot( current_mode, xs, params );
+% P = NatureModelPlot( current_mode, xs, params );
 current_phase = 1;
 
 while current_time < MaxTime - 0.01
@@ -73,7 +77,7 @@ while current_time < MaxTime - 0.01
             t_hist = [ t_hist; tout ];
             state_hist = [ state_hist; xout ];
             
-            P.Visualize( tout, xout, previous_mode );
+%             P.Visualize( tout, xout, previous_mode );
             
             origin_hist = [ origin_hist; repmat(previous_origin, length(tout), 1)];
             mode_hist = [ mode_hist; ones( length(tout), 1 ) ];
@@ -100,7 +104,7 @@ while current_time < MaxTime - 0.01
             t_hist = [ t_hist; tout ];
             state_hist = [ state_hist; xout ];
             
-            P.Visualize( tout, xout, previous_mode );
+%             P.Visualize( tout, xout, previous_mode );
             
             origin_hist = [ origin_hist; repmat(previous_origin, length(tout), 1)];
             previous_origin = previous_origin + state_hist(end,1) * polysin(state_hist(end,3)) + params.l0 * sin(-params.alpha);
@@ -114,7 +118,7 @@ while current_time < MaxTime - 0.01
     end
 end
 
-%% plot states
+% %% plot states
 l_hist = state_hist( :, 1 );
 ldot_hist = state_hist( :, 2 );
 theta_hist = state_hist( :, 3 );
@@ -126,32 +130,32 @@ for i = 1 : length(t_hist)
     u_hist(i) = controller{mode_hist(i)}(t_hist(i), state_hist(i,:)');
 end
 ydot_hist = ldot_hist .* polycos( theta_hist ) - l_hist .* thetadot_hist .* polysin( theta_hist );
-
-% Figure 2 shows x-y
-figure(2);
-hold on;
-title('x-y');
-plot( x_hist, y_hist );
-plot( origin_hist, origin_hist * 0, 'ro' );
-
-% figure 3 shows states
-figure(3);
-hold on;
-title('states');
-plot( t_hist, state_hist );
-plot( t_hist, u_hist );
-plot( t_hist, phase_hist );
-legend('l', 'ldot', 'theta', 'thetadot', 'u', 'phase');
-
-% figure 4 shows guard conditions (i.e. y and ydot)
-figure(4);
-hold on;
-plot( t_hist, y_hist );
-plot( t_hist, ydot_hist );
-plot( [0, 1], [params.yR_lo, params.yR_lo], 'k--' );
-plot( [0, 1], [params.yR_hi, params.yR_hi], 'k--' );
-plot( [0, 1], [0,0], 'k--' );
-legend('y','ydot');
+% 
+% % Figure 2 shows x-y
+% figure(2);
+% hold on;
+% title('x-y');
+% plot( x_hist, y_hist );
+% plot( origin_hist, origin_hist * 0, 'ro' );
+% 
+% % figure 3 shows states
+% figure(3);
+% hold on;
+% title('states');
+% plot( t_hist, state_hist );
+% plot( t_hist, u_hist );
+% plot( t_hist, phase_hist );
+% legend('l', 'ldot', 'theta', 'thetadot', 'u', 'phase');
+% 
+% % figure 4 shows guard conditions (i.e. y and ydot)
+% figure(4);
+% hold on;
+% plot( t_hist, y_hist );
+% plot( t_hist, ydot_hist );
+% plot( [0, 1], [params.yR_lo, params.yR_lo], 'k--' );
+% plot( [0, 1], [params.yR_hi, params.yR_hi], 'k--' );
+% plot( [0, 1], [0,0], 'k--' );
+% legend('y','ydot');
 
 
 % %% Generate initial guess

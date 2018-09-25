@@ -24,12 +24,12 @@ for iphase = 1 : nphases
         case 1          % Stance phase, y<=yR
             phaseout(iphase).dynamics = ( Swing_f_poly3(x1', params) + Swing_g_poly(x1', params) * u1' )';
 %             phaseout(iphase).dynamics = ( Swing_f(x1', params) + Swing_g_poly(x1', params) * u1' )';
-            phaseout(iphase).integrand = (u1) .^ 2;
+            phaseout(iphase).integrand = (u1) .^ 2 / T;
             phaseout(iphase).path = y;
         case 2          % Stance phase, y>=yR
             phaseout(iphase).dynamics = ( Swing_f_poly3(x1', params) + Swing_g_poly(x1', params) * u1' )';
 %             phaseout(iphase).dynamics = ( Swing_f(x1', params) + Swing_g_poly(x1', params) * u1' )';
-            phaseout(iphase).integrand = (u1) .^ 2;
+            phaseout(iphase).integrand = (u1) .^ 2 / T;
             phaseout(iphase).path = y;
         otherwise
             disp('Something Wrong!!!');

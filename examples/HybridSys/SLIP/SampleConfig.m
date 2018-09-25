@@ -60,10 +60,10 @@ tmp = R*line1;
 plot(tmp(1,:),tmp(2,:),'--k','LineWidth', 1);
 tmp = R*line2;
 plot(tmp(1,:),tmp(2,:),'--k','LineWidth', 1);
-% tmp = R*line3;
-% plot(tmp(1,:),tmp(2,:),'--k','LineWidth', 1);
-% tmp = R*line4;
-% plot(tmp(1,:),tmp(2,:),'--k','LineWidth', 1);
+tmp = R*line3;
+plot(tmp(1,:),tmp(2,:),'--k','LineWidth', 1);
+tmp = R*line4;
+plot(tmp(1,:),tmp(2,:),'--k','LineWidth', 1);
 plot([0.2, 0.2],[0, 0.12], '--k','LineWidth', 1);
 %% Plot right
 
