@@ -130,6 +130,8 @@ for i = 1 : length(t_hist)
     u_hist(i) = controller{mode_hist(i)}(t_hist(i), state_hist(i,:)');
 end
 ydot_hist = ldot_hist .* polycos( theta_hist ) - l_hist .* thetadot_hist .* polysin( theta_hist );
+
+Cost = sum((u_hist(2:end).^2) .* diff(t_hist));
 % 
 % % Figure 2 shows x-y
 % figure(2);

@@ -24,8 +24,8 @@ polycos = @(ang) cos(ang);
 Dyn         = cell(2,1);
 controller  = cell(2,1);
 
-controller{1} = @(tt,xx) max(0,min(umax,double(subs(out.u{1}, [t;x{1}], [tt;xx]))));
-controller{2} = @(tt,xx) max(0,min(umax,double(subs(out.u{2}, [t;x{1}], [tt;xx]))));
+controller{1} = @(tt,xx) max(0,min(umax,double(subs(out.u{1}, [t;x{1}], [tt;xx])) * (xx(1)<params.lmax)));
+controller{2} = @(tt,xx) max(0,min(umax,double(subs(out.u{2}, [t;x{1}], [tt;xx])) * (xx(1)<params.lmax)));
 % controller{1} = @(tt,xx) max(0, 1 * (params.l0 - xx(1) ));
 % controller{2} = @(tt,xx) max(0, 1 * (params.l0 - xx(1) ));
 % controller{1} = @(tt,xx) 0;

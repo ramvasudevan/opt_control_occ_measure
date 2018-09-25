@@ -79,3 +79,8 @@ for i = 1 : length(idx)
 end
 
 xticks(unique(origin_hist));
+Cost = Cost + sum((diff(unique(origin_hist))-1).^2);
+disp(['Cost = ',num2str(Cost)]);
+disp(['Sol = ',num2str(out.pval)]);
+
+% keyboard;

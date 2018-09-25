@@ -36,7 +36,7 @@ lmax = params.lmax;
 params.domain{1} =...
         [ 0.1, lmax;        % l         - leg length
          -0.6, 0.6;         % l_dot     - time derivative of l
-         -0.7, 1.5;         % theta     - leg angle
+         -0.7, 1.2;         % theta     - leg angle
          -0.1, 2 ];         % theta_dot - time derivative of theta
 
 % Mode 2: stance, y >= yR
@@ -44,7 +44,7 @@ params.domain{1} =...
 params.domain{2} =...
         [ 0.1, lmax;        % l         - leg length
          -0.6, 0.6;         % l_dot     - time derivative of l
-         -0.7, 1.5;         % theta     - leg angle
+         -0.7, 1.2;         % theta     - leg angle
          -0.1, 2 ];         % theta_dot - time derivative of theta
 
 
@@ -53,9 +53,13 @@ params.domain{2} =...
 %-------------------------------------------------------------------------%
 T = 3;
 nphases = 3;
+d_des = 1;
 x0 = [ 0.35, 0, 0, 0.85 ];
 x0_ub = [0.35; 0; 0; 1.2]';
 x0_lb = [0.35; 0; 0; 0.7]';
+
+polysin = @(ang) ang - ang.^3/6;
+polycos = @(ang) 1 - ang.^2/2;
 
 auxdata = struct;
 auxdata.params = params;

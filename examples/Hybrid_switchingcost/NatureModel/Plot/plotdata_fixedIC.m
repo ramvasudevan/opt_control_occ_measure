@@ -15,13 +15,13 @@ if nargin < 4
     mycolor = [0 0 1];
 end
 
-PlotMySol_approx3_freeIC;
+PlotMySol_approx3_fixedIC;
 
 %% Trajecotry
 axes(h_axis);
 hold on;
 axis equal;
-xlim([-0.1,2.5]);
+xlim([-0.1,3]);
 ylim([-0.1,0.6]);
 plot(x_hist, y_hist,'b-','LineWidth', 2, 'color', mycolor);
 

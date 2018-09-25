@@ -36,7 +36,7 @@ lmax = params.lmax;
 params.domain{1} =...
         [ 0.1, lmax;        % l         - leg length
          -0.6, 0.6;         % l_dot     - time derivative of l
-         -0.7, 1.2;         % theta     - leg angle
+         -0.7, 1.4;         % theta     - leg angle
          -0.1, 2 ];         % theta_dot - time derivative of theta
 
 % Mode 2: stance, y >= yR
@@ -44,20 +44,19 @@ params.domain{1} =...
 params.domain{2} =...
         [ 0.1, lmax;        % l         - leg length
          -0.6, 0.6;         % l_dot     - time derivative of l
-         -0.7, 1.2;         % theta     - leg angle
+         -0.7, 1.4;         % theta     - leg angle
          -0.1, 2 ];         % theta_dot - time derivative of theta
 
 
 %-------------------------------------------------------------------------%
 %--------------- Provide All Physical Data for Problem -------------------%
 %-------------------------------------------------------------------------%
-T = 7;
-nphases = 5;
+T = 3;
 d_des = 1;
+nphases = 3;
 x0 = [ 0.35, 0, 0, 0.85 ];
 x0_ub = [0.35; 0; 0; 1.2]';
 x0_lb = [0.35; 0; 0; 0.7]';
-d_des = 1;
 
 polysin = @(ang) ang - ang.^3/6;
 polycos = @(ang) 1 - ang.^2/2;
@@ -118,8 +117,8 @@ for iphase = 1 : nphases
         bounds.phase(iphase).finaltime.lower = t0;
     end
     if iphase == 1
-        bounds.phase(iphase).initialstate.lower = x0_lb;
-        bounds.phase(iphase).initialstate.upper = x0_ub;
+        bounds.phase(iphase).initialstate.lower = x0;
+        bounds.phase(iphase).initialstate.upper = x0;
     else
         bounds.phase(iphase).initialstate.lower = domain(:,1)';
         bounds.phase(iphase).initialstate.upper = domain(:,2)';
