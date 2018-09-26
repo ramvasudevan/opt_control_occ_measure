@@ -166,13 +166,20 @@ if isfield(options, 'solver_options')
 end
 
 %% Solve
-tic;
 fprintf("Solving....\n");
+tic;
 [sol, y, dual_basis, ~] = prog.minimize( -obj, @spot_mosek, spot_options );
 out.time = toc;
 
 out.pval = double(sol.eval(obj));
 out.sol = sol;
+
+out.mu0_moments = cell( 1, nmodes );
+for i = 1 : nmodes
+    out.mu_moments{ i } = sol.dualEval( y{ mu_idx(i) } );
+    out.mu_basis{ i } = dual_basis{ mu_idx(i) };
+end
+fprintf('done\n');
 
 %% Control Synthesis
 if ~options.withInputs

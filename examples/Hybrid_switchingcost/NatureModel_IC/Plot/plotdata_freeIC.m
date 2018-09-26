@@ -24,6 +24,18 @@ axis equal;
 xlim([-0.1,2.5]);
 ylim([-0.1,0.6]);
 plot(x_hist, y_hist,'b-','LineWidth', 2, 'color', mycolor);
+plot(x_hist, u_hist,'g-');
+
+str= '';
+for i = 1 : length(cost_hist)
+   str = [str, '  ', num2str(cost_hist(i))];
+end
+tmp = diff(unique(origin_hist));
+for i = 1 : length(tmp)
+   str = [str, '| ', num2str((tmp(i)-1)^2)];
+end
+
+title(str);
 
 %% Ground
 % Draw the ground. It reaches from -2.5 to +6.5.

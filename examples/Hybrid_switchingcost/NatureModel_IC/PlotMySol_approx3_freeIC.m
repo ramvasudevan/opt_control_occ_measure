@@ -14,11 +14,11 @@ current_mode = 1;
 xs = [0.35; 0; 0; 0.7];
 previous_mode = 0;
 
-% polysin = @(ang) ang - ang.^3/6;
-% polycos = @(ang) 1 - ang.^2/2;
+polysin = @(ang) ang - ang.^3/6;
+polycos = @(ang) 1 - ang.^2/2;
 
-polysin = @(ang) sin(ang);
-polycos = @(ang) cos(ang);
+% polysin = @(ang) sin(ang);
+% polycos = @(ang) cos(ang);
 
 % Dynamics
 Dyn         = cell(2,1);
@@ -49,6 +49,8 @@ mode_hist = [];
 phase_hist = [];
 previous_origin = 0;
 current_time = 0;
+
+cost_hist = [];
 
 % P = NatureModelPlot( current_mode, xs, params );
 current_phase = 1;
@@ -83,6 +85,12 @@ while current_time < MaxTime - 0.01
             mode_hist = [ mode_hist; ones( length(tout), 1 ) ];
             phase_hist = [ phase_hist; ones( length(tout), 1 ) * current_phase ];
             current_phase = current_phase + 1;
+            
+            tmp = zeros( length(tout)-1, 1 );
+            for i = 1 : length(tout)-1
+                tmp( i ) = controller{1} (tout(i), xout(i,:)');
+            end
+            cost_hist = [ cost_hist; sum(diff(tout) .* tmp) ];
         case 2
             options = odeset('Events',@(tt,xx) EvtFunc21_approx3(tt,xx,params));
             options = odeset(options,'AbsTol',1e-9,'RelTol',1e-8);
@@ -111,6 +119,12 @@ while current_time < MaxTime - 0.01
             mode_hist = [ mode_hist; 2 * ones( length(tout), 1 ) ];
             phase_hist = [ phase_hist; ones( length(tout), 1 ) * current_phase ];
             current_phase = current_phase + 1;
+            
+            tmp = zeros( length(tout)-1, 1 );
+            for i = 1 : length(tout)-1
+                tmp( i ) = controller{1} (tout(i), xout(i,:)');
+            end
+            cost_hist = [ cost_hist; sum(diff(tout) .* tmp) ];
         case 0
             break;
         otherwise
@@ -132,7 +146,10 @@ end
 ydot_hist = ldot_hist .* polycos( theta_hist ) - l_hist .* thetadot_hist .* polysin( theta_hist );
 
 Cost = sum((u_hist(2:end).^2) .* diff(t_hist));
-% 
+
+disp(cost_hist);
+
+
 % % Figure 2 shows x-y
 % figure(2);
 % hold on;

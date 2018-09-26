@@ -2,7 +2,7 @@ function [basis, moments] = run_VDP_ICopt( offset )
 % offset = -0.4;
 
 T = 6;
-d = 10;
+d = 12;
 nmodes = 2;
 
 % Define variables
@@ -48,7 +48,7 @@ sX{2,1} = [ var(1)              % x1 == 0
             - var(2)
             var(2) + 1];         % x2 in [-1,0]
 R{2,1} = var;
-c{2,1} = 10*(var(2)-offset)^2;
+c{2,1} = 10*(var(2)-offset)^2 + 1;
 
 
 % Cost functions

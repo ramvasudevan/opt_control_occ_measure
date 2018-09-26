@@ -19,6 +19,19 @@ axis equal;
 xlim([-0.1,2.5]);
 ylim([-0.1,0.6]);
 plot(x_hist, y_hist,'b-','LineWidth', 2, 'color', mycolor);
+plot(x_hist, control_hist_gpops, 'g-');
+
+str = '';
+for iphase = 1 : nphases
+    tmp = sum( control_hist_gpops(2:end).^2 .* diff(t_hist_gpops) / T );
+    str = [str, '  ', num2str(tmp)]; 
+end
+tmp = diff(unique(xoffset));
+for i = 1 : length(tmp)
+   str = [str, '| ', num2str((tmp(i)-1)^2)];
+end
+
+title(str);
 
 %% Ground
 % Draw the ground. It reaches from -2.5 to +6.5.
