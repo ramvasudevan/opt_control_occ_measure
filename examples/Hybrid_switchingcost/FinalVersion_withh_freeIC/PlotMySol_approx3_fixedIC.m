@@ -10,15 +10,16 @@ current_mode = 1;
 %     current_mode = current_mode + 1;
 % end
 % xs = x0{current_mode}';
+xs = [0.35; 0; 0; 0.7432];
 % xs = [0.35; 0; 0; 0.73097];
-xs = [0.35; 0; 0; 0.85];
+% xs = [0.35; 0; 0; 0.85];
 previous_mode = 0;
 
-% polysin = @(ang) ang - ang.^3/6;
-% polycos = @(ang) 1 - ang.^2/2;
+polysin = @(ang) ang - ang.^3/6;
+polycos = @(ang) 1 - ang.^2/2;
 
-polysin = @(ang) sin(ang);
-polycos = @(ang) cos(ang);
+% polysin = @(ang) sin(ang);
+% polycos = @(ang) cos(ang);
 
 % Dynamics
 Dyn         = cell(2,1);
@@ -107,7 +108,7 @@ while current_time < MaxTime - 0.01
 %             P.Visualize( tout, xout, previous_mode );
             
             origin_hist = [ origin_hist; repmat(previous_origin, length(tout), 1)];
-            previous_origin = previous_origin + state_hist(end,1) * polysin(state_hist(end,3)) + params.l0 * sin(-params.alpha);
+            previous_origin = previous_origin + state_hist(end,1) * polysin(state_hist(end,3)) + params.l0 * polysin(-params.alpha);
             mode_hist = [ mode_hist; 2 * ones( length(tout), 1 ) ];
             phase_hist = [ phase_hist; ones( length(tout), 1 ) * current_phase ];
             current_phase = current_phase + 1;
@@ -139,9 +140,8 @@ plot( x_hist, y_hist );
 plot( origin_hist, origin_hist * 0, 'ro' );
 
 
-% Cost = sum( u_hist(2:end).^2 .* diff(t_hist) ) * T;
-Cost = 0;
-Cost = Cost + sum(( diff(unique(origin_hist)) -1).^2);
+Cost = sum( u_hist(2:end).^2 .* diff(t_hist) ) * T;
+Cost = Cost + 10 * sum(( diff(unique(origin_hist)) -1).^2);
 disp(['Cost = ', num2str(Cost)]);
 % 
 % % figure 3 shows states
