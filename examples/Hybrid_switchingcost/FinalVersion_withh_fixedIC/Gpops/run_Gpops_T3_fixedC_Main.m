@@ -236,6 +236,9 @@ theta_hist = state_hist_gpops( :, 3 );
 thetadot_hist = state_hist_gpops( :, 4 );
 x_hist = l_hist .* polysin( theta_hist ) + xoffset;
 y_hist = l_hist .* polycos( theta_hist );
+
+save(['Result_Gpops_T',num2str(T),'fixedIC']);
+
 figure(7);
 hold on;
 title('states');

@@ -1,4 +1,4 @@
-function plotdata_freeIC_gpops( h_axis, filename, mycolor )
+function plotdata_gpops( h_axis, filename, mycolor )
 
 % clear;
 if (nargin < 2) || (isempty(filename))
@@ -16,7 +16,7 @@ end
 axes(h_axis);
 hold on;
 axis equal;
-xlim([-0.1,2.5]);
+xlim([-0.1,2.7]);
 ylim([-0.1,0.6]);
 plot(x_hist, y_hist,'b-','LineWidth', 2, 'color', mycolor);
 

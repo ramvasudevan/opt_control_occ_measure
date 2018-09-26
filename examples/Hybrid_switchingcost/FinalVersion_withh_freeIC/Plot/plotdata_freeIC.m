@@ -21,7 +21,7 @@ PlotMySol_approx3_fixedIC;
 axes(h_axis);
 hold on;
 axis equal;
-xlim([-0.1,3]);
+xlim([-0.1,2.35]);
 ylim([-0.1,0.6]);
 plot(x_hist, y_hist,'b-','LineWidth', 2, 'color', mycolor);
 

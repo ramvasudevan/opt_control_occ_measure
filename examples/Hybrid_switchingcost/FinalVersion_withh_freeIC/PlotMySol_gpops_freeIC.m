@@ -9,6 +9,9 @@ current_mode = 1;
 % while isempty(x0{current_mode})
 %     current_mode = current_mode + 1;
 % end
+% xs = x0{current_mode}';
+% xs = [0.35; 0; 0; 0.73097];
+xs = [0.35; 0; 0; 0.7];
 previous_mode = 0;
 
 polysin = @(ang) ang - ang.^3/6;
@@ -21,8 +24,10 @@ polycos = @(ang) 1 - ang.^2/2;
 Dyn         = cell(2,1);
 controller  = cell(2,1);
 
-controller{1} = @(tt,xx) max(0,min(umax,double(subs(out.u{1}, [t;x{1}], [tt;xx])) * (xx(1)<params.lmax)));
-controller{2} = @(tt,xx) max(0,min(umax,double(subs(out.u{2}, [t;x{1}], [tt;xx])) * (xx(1)<params.lmax)));
+% controller{1} = @(tt,xx) max(0,min(umax,double(subs(out.u{1}, [t;x{1}], [tt;xx])) * (xx(1)<params.lmax)));
+% controller{2} = @(tt,xx) max(0,min(umax,double(subs(out.u{2}, [t;x{1}], [tt;xx])) * (xx(1)<params.lmax)));
+controller{1} = @(tt,xx) gpops_control( tt, xx, T, t_hist_gpops, control_hist_gpops );
+controller{2} = @(tt,xx) gpops_control( tt, xx, T, t_hist_gpops, control_hist_gpops );
 % controller{1} = @(tt,xx) max(0, 1 * (params.l0 - xx(1) ));
 % controller{2} = @(tt,xx) max(0, 1 * (params.l0 - xx(1) ));
 % controller{1} = @(tt,xx) 0;
@@ -57,7 +62,7 @@ while current_time < MaxTime - 0.01
             options = odeset('Events',@(tt,xx) EvtFunc12_approx3(tt,xx,params));
             options = odeset(options,'AbsTol',1e-9,'RelTol',1e-8);
             [ tout, xout, event_time, event_state, event_id ] = ...
-                ode45(Dyn{1}, (current_time : 1e-3 : MaxTime), xs, options);
+                ode45(Dyn{1}, (current_time : 1e-4 : MaxTime), xs, options);
             % Reset
             previous_mode = current_mode;
             if ~isempty(event_id)
@@ -84,7 +89,7 @@ while current_time < MaxTime - 0.01
             options = odeset('Events',@(tt,xx) EvtFunc21_approx3(tt,xx,params));
             options = odeset(options,'AbsTol',1e-9,'RelTol',1e-8);
             [ tout, xout, event_time, event_state, event_id ] = ...
-                ode45(Dyn{2}, (current_time : 1e-3 : MaxTime), xs, options);
+                ode45(Dyn{2}, (current_time : 1e-4 : MaxTime), xs, options);
             % Reset
             previous_mode = current_mode;
             if ~isempty(event_id)
@@ -181,3 +186,8 @@ disp(['Cost = ', num2str(Cost)]);
 % %     guess.phase(iphase).control = [0; 0];
 %     myguess.phase(iphase).integral = 0;
 % end
+
+function out = gpops_control( tt, xx, T, t_hist_gpops, control_hist_gpops )
+    [~,idx] = min(abs(t_hist_gpops - tt * T));
+    out = control_hist_gpops(idx);
+end

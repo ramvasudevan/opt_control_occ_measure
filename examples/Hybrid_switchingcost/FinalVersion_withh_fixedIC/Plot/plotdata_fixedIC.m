@@ -1,4 +1,4 @@
-function plotdata_freeIC( h_axis, filename, xs, mycolor )
+function plotdata_fixedIC( h_axis, filename, xs, mycolor )
 % clear;
 if (nargin < 2) || (isempty(filename))
     load('Result_Fpoly3_T7_noIC_deg8');
@@ -21,7 +21,7 @@ PlotMySol_approx3_fixedIC;
 axes(h_axis);
 hold on;
 axis equal;
-xlim([-0.1,3]);
+xlim([-0.1,2.7]);
 ylim([-0.1,0.6]);
 plot(x_hist, y_hist,'b-','LineWidth', 2, 'color', mycolor);
 

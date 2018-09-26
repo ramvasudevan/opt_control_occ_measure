@@ -54,7 +54,7 @@ params.domain{2} =...
 %-------------------------------------------------------------------------%
 %--------------- Provide All Physical Data for Problem -------------------%
 %-------------------------------------------------------------------------%
-T = 3;
+T = 2.5;
 d_des = 1;
 nphases = 3;
 x0 = [ 0.35, 0, 0, 0.85 ];
@@ -238,6 +238,8 @@ theta_hist = state_hist_gpops( :, 3 );
 thetadot_hist = state_hist_gpops( :, 4 );
 x_hist = l_hist .* polysin( theta_hist ) + xoffset;
 y_hist = l_hist .* polycos( theta_hist );
+save(['Result_gpops_T',num2str(T),'_freeIC']);
+
 figure(7);
 hold on;
 title('states');
