@@ -17,10 +17,11 @@ plotdata_freeIC(gca, 'Result_Fpoly3_T3_freeIC_deg8', [ 0.35; 0; 0; 0.72019 ], [.
 subplot(4,1,4);
 plotdata_gpops( gca, 'Result_gpops_T3_freeIC' );
 
-set(h_fig1,'PaperSize',[6, 7.4]);
 h_fig1.PaperUnits = 'inches';
-h_fig1.PaperPosition = [-0.4, -0.6, 6.8 8.4];
+set(h_fig1,'PaperSize',[6.8, 10]);
+h_fig1.PaperPosition = [-0.68, -1.1, [6.8, 10]*1.2];
 print(h_fig1,'Example1_freeIC','-dpdf');
+% print(h_fig1,'Example1_freeIC','-depsc');
 
 % ============================================================================
 
@@ -37,9 +38,9 @@ plotdata_freeIC(gca, 'Result_Fpoly3_T6_freeIC_deg8', [ 0.35; 0; 0; 0.7 ], [.702,
 subplot(4,1,4);
 plotdata_gpops( gca, 'Result_gpops_T6_freeIC' );
 
-set(h_fig2,'PaperSize',[6, 7.4]);
+set(h_fig2,'PaperSize',[6.8, 10]);
 h_fig2.PaperUnits = 'inches';
-h_fig2.PaperPosition = [-0.4, -0.6, 6.8 8.4];
+h_fig2.PaperPosition = [-0.68, -1.1, [6.8, 10]*1.2];
 print(h_fig2,'Example2_freeIC','-dpdf');
 
 % h_fig1 = figure(3);

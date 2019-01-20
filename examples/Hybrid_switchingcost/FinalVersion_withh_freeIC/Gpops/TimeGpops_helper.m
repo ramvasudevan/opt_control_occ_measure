@@ -1,12 +1,4 @@
-% GPOPS-II
-% 
-% Initial guess is not given beforehand. Number of transitions is specified
-% by 'nphases'.
-% 
-
-% close all;
-clear;
-clc;
+function TimeGpops_helper( nphases, T )
 
 polysin = @(ang) ang - ang.^3/6;
 polycos = @(ang) 1 - ang.^2/2;
@@ -54,9 +46,7 @@ params.domain{2} =...
 %-------------------------------------------------------------------------%
 %--------------- Provide All Physical Data for Problem -------------------%
 %-------------------------------------------------------------------------%
-T = 3;
 d_des = 1;
-nphases = 3;
 x0 = [ 0.35, 0, 0, 0.85 ];
 x0_ub = [0.35; 0; 0; 1.2]';
 x0_lb = [0.35; 0; 0; 0.7]';
@@ -187,7 +177,7 @@ end
 setup.name                           = 'NatureModel_modified';
 setup.functions.continuous           = @NatureModelContinuous_Unscaled;
 setup.functions.endpoint             = @NatureModelEndpoint_Unscaled;
-setup.displaylevel                   = 2;
+setup.displaylevel                   = 0;
 setup.bounds                         = bounds;
 setup.guess                          = guess;
 setup.auxdata                        = auxdata;
@@ -205,56 +195,4 @@ setup.method                         = 'RPM-Differentiation';
 %-------------------------------------------------------------------------%
 %---------------------- Solve Problem Using GPOPS2 -----------------------%
 %-------------------------------------------------------------------------%
-tic
 output = gpops2(setup);
-toc
-
-disp(['Gpops p* = ', num2str(output.result.objective)]);
-
-%-------------------------------------------------------------------------%
-%-------------------------------- PLot -----------------------------------%
-%-------------------------------------------------------------------------%
-%%
-state_hist_gpops = [];
-t_hist_gpops = [];
-control_hist_gpops = [];
-xoffset = [];
-phase_hist_gpops = [];
-previous_x = 0;
-for iphase = 1 : nphases
-    t_hist_gpops = [ t_hist_gpops; output.result.solution.phase(iphase).time ];
-    state_hist_gpops = [ state_hist_gpops; output.result.solution.phase(iphase).state ];
-    control_hist_gpops = [ control_hist_gpops; output.result.solution.phase(iphase).control ];
-    xoffset = [ xoffset; previous_x * ones(length(output.result.solution.phase(iphase).time),1) ];
-    if (mod(iphase,2) == 0)
-        xf1 = state_hist_gpops( end, : );
-        previous_x = previous_x + xf1(1) * polysin(xf1(3)) + params.l0 * polysin(-params.alpha);
-    end
-    phase_hist_gpops = [ phase_hist_gpops; iphase * ones(length( output.result.solution.phase(iphase).time ), 1) ];
-end
-l_hist = state_hist_gpops( :, 1 );
-ldot_hist = state_hist_gpops( :, 2 );
-theta_hist = state_hist_gpops( :, 3 );
-thetadot_hist = state_hist_gpops( :, 4 );
-x_hist = l_hist .* polysin( theta_hist ) + xoffset;
-y_hist = l_hist .* polycos( theta_hist );
-save(['Result_gpops_T',num2str(T),'_freeIC']);
-
-figure(7);
-hold on;
-title('states');
-% plot(t_hist_gpops, l_hist);
-% plot(t_hist_gpops, ldot_hist);
-% plot(t_hist_gpops, theta_hist);
-% plot(t_hist_gpops, thetadot_hist);
-plot(t_hist_gpops, control_hist_gpops);
-
-% legend('l','ldot','theta','thetadot','u');
-
-% plot(t_hist, control_hist);
-figure(8);
-hold on;
-plot(x_hist, y_hist);
-plot([0,1],[params.yR_lo, params.yR_lo], 'k--');
-plot([0,1],[params.yR_hi, params.yR_hi], 'k--');
-title('X-Y');

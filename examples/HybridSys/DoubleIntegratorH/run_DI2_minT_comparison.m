@@ -16,7 +16,7 @@
 
 clear;
 T = 5;
-d = 10;
+d = 6;
 nmodes = 2;
 r2 = 0.3;
 
@@ -73,7 +73,9 @@ options.withInputs = 1;
 options.svd_eps = 1e4;
 
 % Solve
-[out] = HybridOCPDualSolver(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,d,options);
+seq = [2, 1];
+% [out] = HybridOCPDualSolver(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,d,options);
+[out] = HybridOCP_Comparison(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,seq,d,options);
 
 pval = T * out.pval;
 

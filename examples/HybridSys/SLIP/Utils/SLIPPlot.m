@@ -146,5 +146,4 @@ classdef SLIPPlot < handle
         end
     end
 end
-            
-            
+

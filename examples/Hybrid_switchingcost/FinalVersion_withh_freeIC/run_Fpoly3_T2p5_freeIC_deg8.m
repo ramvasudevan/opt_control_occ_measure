@@ -152,4 +152,4 @@ hXT{1} = hX{1};
 disp(['p* = ', num2str( out.pval )]);
 
 fprintf('Finished solving freeIC, T%d, deg %d, F approx 3.\n', T, d);
-save(['Result_Fpoly3_T2p5_freeIC_deg',num2str(d)]);
+save(['Result_Fpoly3_T2p5_freeIC_deg',num2str(d),'Strings']);
