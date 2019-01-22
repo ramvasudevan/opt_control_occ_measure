@@ -6,9 +6,9 @@ t = msspoly( 't', 1 );
 x = msspoly( 'x', 1 );
 u = msspoly( 'u', 1 );
 
-f = -1 * x;
+f = 1 * x;
 g = 1;
-sigma = 0.3;
+sigma = 0.5;
 
 % x0 = 0.3;      % initial point
 dl0 = boxMoments( x, -0.5, 0.5 );       % uniform distribution on [-1, 1]

@@ -8,9 +8,9 @@ u = msspoly( 'u', 1 );
 
 % f =  -1 * x;
 % g = 1;
-fy = -1 * (y + y^3/3 + y^5/5);       % f = -x
+fy = 1 * (y + y^3/3 + y^5/5);       % f = -x
 gy = 1;
-sigma = 0.3;
+sigma = 0.5;
 
 % x0 = 0.3;      % initial point
 dly0 = boxMoments( y, -0.5, 0.5 );       % uniform distribution on [-1, 1]
