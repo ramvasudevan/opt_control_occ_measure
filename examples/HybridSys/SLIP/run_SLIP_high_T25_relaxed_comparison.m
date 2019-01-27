@@ -3,7 +3,8 @@
 % running cost = l*cos(theta) [in stance phase], or y [in flight phase]
 % terminal cost = 0
 % 
-
+clear;
+close all;
 %-------------------------------------------------------------------------%
 %-------------------- All Physical Parameters for SLIP -------------------%
 %-------------------------------------------------------------------------%
@@ -86,11 +87,11 @@ x{3} = x{2};
 u{3} = u{1};                % dummy variable
 
 % Dynamics
-f{1} = T * Stance_f_Approx( x{1}, params );
-g{1} = T * Stance_g_Approx( x{1}, params );
+f{1} = Stance_f_Approx( x{1}, params );
+g{1} = Stance_g_Approx( x{1}, params );
 for i = 2 : 3
-    f{i} = T * Flight_f( x{i}, params );
-    g{i} = T * Flight_g( x{i}, params );
+    f{i} = Flight_f( x{i}, params );
+    g{i} = Flight_g( x{i}, params );
 end
 
 % Suppports, Reset Maps, and Cost Functions
@@ -153,12 +154,151 @@ hXT{3} = hX{3};
 %-------------------------------------------------------------------------%
 %-------------------------------- Solve ----------------------------------%
 %-------------------------------------------------------------------------%
-[out] = HybridOCPDualSolver(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,d,options);
+P = SLIPPlot( 3, x0{3}, params ); 
 
-disp(['LMI ' int2str(d) ' lower bound = ' num2str(out.pval)]);
+% function handles
+hf{1} = @(xx) Stance_f_Approx(xx,params);
+hg{1} = @(xx) Stance_g_Approx(xx,params);
+hf{2} = @(xx) Flight_f(xx,params);
+hg{2} = @(xx) Flight_g(xx,params);
+hf{3} = @(xx) Flight_f(xx,params);
+hg{4} = @(xx) Flight_g(xx,params);
+
+R_12 = @(xx) Reset_S2F_Approx( xx, params );
+R_23 = @(xx) xx;
+R_31 = @(xx) Reset_F2S_Approx( xx, params );
+
+MaxTime = 1;
+seq = [ 3; 1; 2; 3 ];
+t_hist = 0;
+state_hist = nan(1,9);
+u_hist = 0;
+
+for i = 1 : length( seq )
+    cmode = seq( i );
+    xvar = x{ cmode };
+    uvar = u{ cmode };
+    if i == 1
+        cx0 = x0{ cmode };
+    end
+    chX = hX{ cmode };
+    ch = h{ cmode };
+    if i == length(seq)
+        chXT = hXT{ cmode };
+        cH = H{ cmode };
+        options.freeFinalTime = 0;
+    else
+        chXT = sX{ seq(i), seq(i+1) };
+        cH = msspoly( 0 );
+        options.freeFinalTime = 1;
+    end
+    
+%     Tleft = T - t_hist(end);
+    Tleft = T;
+    if cmode == 1
+        options.withInputs = 1;
+    else
+        options.withInputs = 0;
+    end
+    
+    if cmode == 1
+    [out] = OCPDualSolver( t, xvar, uvar, Tleft*f{cmode}, Tleft*g{cmode}, cx0, chX, chXT, ch, cH, d, options );
+    end
+    
+    
+    MaxTime = (T - t_hist(end)) / Tleft;
+    % integrate forward
+    switch cmode
+        case 1          % stance
+            controller = @(tt,xx) max(0,min(1,double(subs(out.u{1}, [t;xvar], [tt;xx]))));
+            options = odeset('Events',@(tt,xx) EvtFunc_S2F_scaled(tt,xx,params));
+            options = odeset(options,'AbsTol',1e-9,'RelTol',1e-8);
+            [ tout, xout, event_time, event_state, event_id ] = ...
+                ode45(@(tt,xx) Tleft * ( hf{1}(xx) + hg{1}(xx) * controller(tt,xx) ), ...
+                             (0 : 1e-2 : MaxTime), cx0, options);
+            % Reset
+            if ~isempty(event_id)
+                if event_id(end) ~= 1
+                    error('Something wrong.');
+                else
+                    xend = xout(end,:);
+                    cx0 = R_12(xend);
+                end
+            end
+            % Save
+            P.Visualize( tout * Tleft + t_hist(end), xout, 1 );
+            
+            t_hist = [ t_hist; t_hist(end) + tout * Tleft ];
+            mat = [ eye(5), nan*ones(5,3) ];
+            tmp = xout*mat;
+            tmp(:,7) = tmp(:,1) .* cos(tmp(:,3));
+            state_hist = [ state_hist; tmp, 1*ones(length(tout),1) ];
+            
+%             P.Visualize( tout, xout, 1 );
+        case 2          % flight 1, ydot > 0
+            options = odeset('Events',@(tt,xx) EvtFunc_F1_scaled(tt,xx,params));
+            options = odeset(options,'AbsTol',1e-9,'RelTol',1e-8);
+            [ tout, xout, event_time, event_state, event_id ] = ...
+                ode45(@(tt,xx) Tleft * ( hf{2}(xx) ), ...
+                             (0 : 1e-2 :  MaxTime), cx0, options);
+            % Reset
+            if ~isempty(event_id)
+                if event_id(1) ~= 1
+                    error('Something wrong 2.');
+                    current_mode = 0;
+                else
+                    xend = xout(end,:);
+                    cx0 = R_23(xend);
+                    cx0 = cx0(:);
+                    current_mode = 3;
+                end
+            end
+%             if xs(3)<yR
+%                 xs = R_31(xs);
+%                 current_mode = 1;
+%             end
+%             current_time = tout(end);
+            % Plot
+            P.Visualize( tout * Tleft + t_hist(end), xout, 2 );
+            t_hist = [t_hist; t_hist(end) + tout * Tleft];
+            mat = [ nan*ones(4,4), eye(4) ];
+            state_hist = [ state_hist; xout*mat, 2*ones(length(tout),1) ];
+            
+%             P.Visualize( tout, xout, 2 );
+        case 3          % flight 2, ydot < 0
+            options = odeset('Events',@(tt,xx) EvtFunc_F2S_scaled(tt,xx,params));
+            options = odeset(options,'AbsTol',1e-9,'RelTol',1e-8);
+            [ tout, xout, event_time, event_state, event_id ] = ...
+                ode45(@(tt,xx) Tleft * ( hf{3}(xx) ), ...
+                             (0 : 1e-2 : MaxTime), cx0, options);
+            % Reset
+%             previous_mode = current_mode;
+            if ~isempty(event_id)
+                if event_id(1) ~= 1
+                    current_mode = 0;
+                    error('Something wrong 3.');
+                else
+                    xend = xout(end,:);
+                    cx0 = R_31(xend);
+                    current_mode = 1;
+                end
+            end
+            current_time = tout(end);
+            % Plot
+            P.Visualize( tout * Tleft + t_hist(end), xout, 3 );
+            
+            t_hist = [t_hist; t_hist(end) + tout * Tleft];
+            mat = [ nan*ones(4,4), eye(4) ];
+            state_hist = [ state_hist; xout*mat, 3*ones(length(tout),1) ];
+            
+%             P.Visualize( tout, xout, 3 );
+    end
+end
+
+
 
 %-------------------------------------------------------------------------%
 %-------------------------------- PLot -----------------------------------%
 %-------------------------------------------------------------------------%
-PlotRelaxedControl;
-GenerateGuess;
+% PlotRelaxedControl;
+% GenerateGuess;
