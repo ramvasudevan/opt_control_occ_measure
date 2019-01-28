@@ -87,11 +87,11 @@ x{3} = x{2};
 u{3} = u{1};                % dummy variable
 
 % Dynamics
-f{1} = T * Stance_f_Approx( x{1}, params );
-g{1} = T * Stance_g_Approx( x{1}, params );
+f{1} = Stance_f_Approx( x{1}, params );
+g{1} =  Stance_g_Approx( x{1}, params );
 for i = 2 : 3
-    f{i} = T * Flight_f( x{i}, params );
-    g{i} = T * Flight_g( x{i}, params );
+    f{i} = Flight_f( x{i}, params );
+    g{i} = Flight_g( x{i}, params );
 end
 
 % Suppports, Reset Maps, and Cost Functions
@@ -110,7 +110,7 @@ sX{1,2} = ...                           % guard
           domain{2}(:,2) - R{1,2};          % Image(R(i,j)) \subset X_j
           R{1,2} - domain{2}(:,1) ];
 
-h{1} = (0.1*T*t - 0.5 - y(5))^2 * T;       % h = (0.1 * t - 1 - x)^2
+h{1} = (0.1*T*t - 0.5 - y(5))^2;       % h = (0.1 * t - 1 - x)^2
 H{1} = 0;
 
 % Mode 2: Flight, y_dot > 0
@@ -124,7 +124,7 @@ sX{2,3} = ...                           % guard
           domain{3}(:,2) - R{2,3};          % Image(R(i,j)) \subset X_j
           R{2,3} - domain{3}(:,1) ];
 
-h{2} = (0.1*T*t - 0.5 - y(1))^2 * T;       % h = (0.1 * t - 1 - x)^2
+h{2} = (0.1*T*t - 0.5 - y(1))^2;       % h = (0.1 * t - 1 - x)^2
 H{2} = 0;
 
 % Mode 3 : Flight 2
@@ -138,7 +138,7 @@ sX{3,1} = ...                           % guard
           domain{1}(:,2) - R{3,1};      	% Image(R(i,j)) \subset X_j
           R{3,1} - domain{1}(:,1) ];
 
-h{3} = (0.1*T*t - 0.5 - y(1))^2 * T;       % h = (0.1 * t - 1 - x)^2
+h{3} = (0.1*T*t - 0.5 - y(1))^2;       % h = (0.1 * t - 1 - x)^2
 H{3} = 0;
 
 % Initial condition and Target Set
@@ -152,7 +152,7 @@ hXT{3} = hX{3};
 %-------------------------------------------------------------------------%
 %-------------------------------- Solve ----------------------------------%
 %-------------------------------------------------------------------------%
-P = SLIPPlot( 3, x0{3}, params ); 
+% P = SLIPPlot( 3, x0{3}, params ); 
 
 
 % function handles
@@ -170,9 +170,9 @@ R_31 = @(xx) Reset_F2S_Approx( xx, params );
 MaxTime = 1;
 switch d
     case 4
-        seq = [ 3; 1; 2; 3 ];
-    case 6
         seq = [ 3; 1; 2; 3; 1 ];
+    case 6
+        seq = [ 3; 1; 2; 3 ];
     case 8
         seq = [ 3; 1; 2; 3; 1 ];
 end
@@ -183,6 +183,8 @@ pval = 0;
 total_time = 0;
 
 for i = 1 : length( seq )
+    Tleft = T - t_hist(end);
+    
     cmode = seq( i );
     xvar = x{ cmode };
     uvar = u{ cmode };
@@ -190,7 +192,14 @@ for i = 1 : length( seq )
         cx0 = x0{ cmode };
     end
     chX = hX{ cmode };
-    ch = h{ cmode };
+%     ch = h{ cmode } * Tleft;
+    switch cmode
+        case 1
+            ch = ( 0.1 * ( Tleft * t + (T-Tleft) ) - 0.5 - xvar(5) )^2;    % h = (0.1 * t - 0.5 - x)^2
+        otherwise
+            ch = ( 0.1 * ( Tleft * t + (T-Tleft) ) - 0.5 - xvar(1) )^2;    % h = (0.1 * t - 0.5 - x)^2
+    end
+    
     if i == length(seq)
         chXT = hXT{ cmode };
         cH = H{ cmode };
@@ -201,7 +210,6 @@ for i = 1 : length( seq )
         options.freeFinalTime = 1;
     end
     
-    Tleft = T - t_hist(end);
 %     Tleft = T;
     if cmode == 1
         options.withInputs = 1;
@@ -236,7 +244,7 @@ for i = 1 : length( seq )
                 end
             end
             % Save
-            P.Visualize( tout * Tleft + t_hist(end), xout, 1 );
+%             P.Visualize( tout * Tleft + t_hist(end), xout, 1 );
             
             t_hist = [ t_hist; t_hist(end) + tout * Tleft ];
             mat = [ eye(5), nan*ones(5,3) ];
@@ -269,7 +277,7 @@ for i = 1 : length( seq )
 %             end
 %             current_time = tout(end);
             % Plot
-            P.Visualize( tout * Tleft + t_hist(end), xout, 2 );
+%             P.Visualize( tout * Tleft + t_hist(end), xout, 2 );
             t_hist = [t_hist; t_hist(end) + tout * Tleft];
             mat = [ nan*ones(4,4), eye(4) ];
             state_hist = [ state_hist; xout*mat, 2*ones(length(tout),1) ];
@@ -295,7 +303,7 @@ for i = 1 : length( seq )
             end
             current_time = tout(end);
             % Plot
-            P.Visualize( tout * Tleft + t_hist(end), xout, 3 );
+%             P.Visualize( tout * Tleft + t_hist(end), xout, 3 );
             
             t_hist = [t_hist; t_hist(end) + tout * Tleft];
             mat = [ nan*ones(4,4), eye(4) ];
@@ -305,3 +313,43 @@ for i = 1 : length( seq )
     end
     
 end
+
+
+%% -------------------------------------------------------------------------%
+%-------------------------------- Cost -----------------------------------%
+%-------------------------------------------------------------------------%
+t_hist = t_hist( 2:end );
+state_hist = state_hist( 2:end, : );
+
+cost = 0;
+for i = 1 : length(t_hist)-1
+    
+    current_mode = state_hist(i,end);
+    dt = t_hist(i+1) - t_hist(i);
+    cost = cost + dt * ( 0.1 * t_hist(i+1) - 0.5 - state_hist(i+1,5) )^2;
+    
+%     if current_mode == 1
+%         
+%         state = ( state_hist( i, 1:5 ) )';
+%         dt = t_hist(i+1) - t_hist(i);
+%         cost = cost + dt * double( subs(h{current_mode}, [ t; x{current_mode} ], [ t_hist(i); state ] ) );
+%        
+%     elseif current_mode > 1
+%     
+%         state = ( state_hist( i, 5:8 ) )';
+%         dt = t_hist(i+1) - t_hist(i);
+%         cost = cost + dt * double( subs(h{current_mode}, [ t; x{current_mode} ], [ t_hist(i); state ] ) );
+%         
+%     else
+%         
+%         disp('terminate');
+%         
+%     end
+end
+
+disp(['total time = ', num2str(total_time)]);
+disp(['pval = ', num2str(pval)]);
+disp(['cost = ', num2str(cost)]);
+
+save(['Rebuttal_SLIP_constV_d', num2str(d),'_T3']);
+

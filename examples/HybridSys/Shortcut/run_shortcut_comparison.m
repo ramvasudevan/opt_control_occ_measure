@@ -33,7 +33,7 @@
 
 clear;
 T = 3;          % maximum time horizon
-d = 8;          % degree of relaxation
+d = 6;          % degree of relaxation
 nmodes = 3;     % number of hybrid modes
 
 polysin = @(x) x;
@@ -136,6 +136,7 @@ options.svd_eps = 1e4;
 seq = [ 1; 3; 2 ];
 
 pval = 0;
+total_time = 0;
 t_hist = 0;
 x_hist = [ x0{ seq(1) } ].';
 u_hist = [ 0, 0 ];
@@ -146,7 +147,7 @@ for i = 1 : length( seq )
     if i == 1
         cx0 = x0{ cmode };
     end
-    chX = hX{ cmode };
+    chX = [ hX{ cmode }; hU{ cmode } ];
     ch = h{ cmode };
     if i == length( seq )
         chXT = hXT{ cmode };
@@ -156,8 +157,9 @@ for i = 1 : length( seq )
         cH = msspoly( 0 );
     end
     
-    [out] = OCPDualSolver( t, xvar, uvar, T*f{cmode}, T*g{cmode}, cx0, chX, chXT, ch, cH, d, options );
+    [out] = OCPDualSolver( t, xvar, uvar, f{cmode}, g{cmode}, cx0, chX, chXT, ch, cH, d, options );
     pval = pval + T * out.pval;
+    total_time = total_time + out.time;
     
     % integrate forward
     switch cmode
@@ -175,7 +177,7 @@ for i = 1 : length( seq )
             [ tval2, xval2 ] = ode45( @(tt,xx) T*DubinsEq( tt, xx, controller ), [0:0.001:1], cx0, ode_options );
             uval2 = double( msubs( [out.u{1}; out.u{2} ], [t;xvar], [tval2, xval2].' ) ).';
         case 3
-            Dyn3 = @(tt,xx) 2 * T * double( subs( out.u{1}, [t;xvar], [tt;xx] ) );
+            Dyn3 = @(tt,xx) -2 * T * double( subs( out.u{1}, [t;xvar], [tt;xx] ) );
             ode_options = odeset( 'Events', @Evt3 );
             [ tval3, xval3 ] = ode45( Dyn3, [0:0.001:1], cx0, ode_options);
             uval3 = double( msubs( [out.u{1} ], [t;xvar], [tval3, xval3].' ) ).';
@@ -184,70 +186,82 @@ for i = 1 : length( seq )
     
 end
 
-
-%% Plot
-if ~options.withInputs
-    return;
-end
-
 tval1 = tval1 * T;
 tval3 = tval3 * T + tval1(end);
 tval2 = tval2 * T + tval3(end);
 
-figure;
-hold on;
-% trajectory from simulation
-% In mode 1
-% controller1 = @(tt,xx) [ double(subs(out.u{1,1},[t;x{1}],[tt;xx])); double(subs(out.u{1,2},[t;x{1}],[tt;xx])) ];
-% ode_options = odeset('Events', @EventFcn_1);
-% [ tval1, xval1 ] = ode45( @(tt,xx) T*DubinsEq( tt, xx, controller1 ), [0:0.0001:1], x0{1}, ode_options );
-h_traj1 = plot3( xval1(:,1), xval1(:,2), xval1(:,1)*0, 'LineWidth', 4 );
+cost = tval2(end);
 
-% In mode 3
-% ode_options = odeset('Events', @EventFcn_3);
-% [ tval3, xval3 ] = ode45( @(tt,xx) -2*T*double(subs(out.u{3,1},[t;x{3}],[tt;xx])), ...
-%                           [tval1(end):0.0001:1], 1, ode_options );
-h_traj3 = plot3( xval3*0+1, xval3, xval3*0+1, 'LineWidth', 4 );
+disp(['total time = ', num2str(total_time)]);
+disp(['pval = ', num2str(pval)]);
+disp(['cost = ', num2str(cost)]);
 
-% In mode 2
-% controller2 = @(tt,xx) [ double(subs(out.u{2,1},[t;x{1}],[tt;xx])); double(subs(out.u{2,2},[t;x{2}],[tt;xx])) ];
-% ode_options = odeset('Events', @EventFcn_2);
-% [ tval2, xval2 ] = ode45( @(tt,xx) T*DubinsEq( tt, xx, controller2 ), ...
-%                           [tval3(end):0.0001:1], [ 0.6; -0.8; 0 ], ode_options );
-h_traj2 = plot3( xval2(:,1), xval2(:,2), xval2(:,1)*0, 'LineWidth', 4 );
+save(['Rebuttal_Shortcut_d', num2str(d),'_T3']);
 
-% control action
-figure;
-hold on;
-% uval1 = zeros( length(tval1), 2 );
-% for i = 1 : length(tval1)
-%     tt = tval1(i);
-%     xx = xval1(i,1:3)';
-%     uval1(i,1) = double( subs(out.u{1,1}, [t;x{1}], [tt;xx]) );
-%     uval1(i,2) = double( subs(out.u{1,2}, [t;x{1}], [tt;xx]) );
+
+% %% Plot
+% if ~options.withInputs
+%     return;
 % end
-% uval2 = zeros( length(tval2), 1 );
-% for i = 1 : length(tval2)
-%     tt = tval2(i);
-%     xx = xval2(i,:)';
-%     uval2(i,1) = double( subs(out.u{2,1}, [t;x{2}], [tt;xx]) );
-%     uval2(i,2) = double( subs(out.u{2,2}, [t;x{2}], [tt;xx]) );
-% end
-% uval3 = zeros( length(tval3), 1 );
-% for i = 1 : length(tval3)
-%     tt = tval3(i);
-%     xx = xval3(i);
-%     uval3(i) = double( subs(out.u{3,1}, [t;x{3}], [tt;xx]) );
-% end
-
-uval1(uval1>1) = 1;
-uval2(uval2>1) = 1;
-uval3(uval3>1) = 1;
-
-subplot(1,2,1);
-plot([tval1;tval3;tval2],[uval1(:,1);uval3(:,1);uval2(:,1)]);
-subplot(1,2,2);
-plot([tval1;tval3;tval2],[uval1(:,2);uval3(:,1)*nan;uval2(:,2)]*3);
+% 
+% tval1 = tval1 * T;
+% tval3 = tval3 * T + tval1(end);
+% tval2 = tval2 * T + tval3(end);
+% 
+% figure;
+% hold on;
+% % trajectory from simulation
+% % In mode 1
+% % controller1 = @(tt,xx) [ double(subs(out.u{1,1},[t;x{1}],[tt;xx])); double(subs(out.u{1,2},[t;x{1}],[tt;xx])) ];
+% % ode_options = odeset('Events', @EventFcn_1);
+% % [ tval1, xval1 ] = ode45( @(tt,xx) T*DubinsEq( tt, xx, controller1 ), [0:0.0001:1], x0{1}, ode_options );
+% h_traj1 = plot3( xval1(:,1), xval1(:,2), xval1(:,1)*0, 'LineWidth', 4 );
+% 
+% % In mode 3
+% % ode_options = odeset('Events', @EventFcn_3);
+% % [ tval3, xval3 ] = ode45( @(tt,xx) -2*T*double(subs(out.u{3,1},[t;x{3}],[tt;xx])), ...
+% %                           [tval1(end):0.0001:1], 1, ode_options );
+% h_traj3 = plot3( xval3*0+1, xval3, xval3*0+1, 'LineWidth', 4 );
+% 
+% % In mode 2
+% % controller2 = @(tt,xx) [ double(subs(out.u{2,1},[t;x{1}],[tt;xx])); double(subs(out.u{2,2},[t;x{2}],[tt;xx])) ];
+% % ode_options = odeset('Events', @EventFcn_2);
+% % [ tval2, xval2 ] = ode45( @(tt,xx) T*DubinsEq( tt, xx, controller2 ), ...
+% %                           [tval3(end):0.0001:1], [ 0.6; -0.8; 0 ], ode_options );
+% h_traj2 = plot3( xval2(:,1), xval2(:,2), xval2(:,1)*0, 'LineWidth', 4 );
+% 
+% % control action
+% figure;
+% hold on;
+% % uval1 = zeros( length(tval1), 2 );
+% % for i = 1 : length(tval1)
+% %     tt = tval1(i);
+% %     xx = xval1(i,1:3)';
+% %     uval1(i,1) = double( subs(out.u{1,1}, [t;x{1}], [tt;xx]) );
+% %     uval1(i,2) = double( subs(out.u{1,2}, [t;x{1}], [tt;xx]) );
+% % end
+% % uval2 = zeros( length(tval2), 1 );
+% % for i = 1 : length(tval2)
+% %     tt = tval2(i);
+% %     xx = xval2(i,:)';
+% %     uval2(i,1) = double( subs(out.u{2,1}, [t;x{2}], [tt;xx]) );
+% %     uval2(i,2) = double( subs(out.u{2,2}, [t;x{2}], [tt;xx]) );
+% % end
+% % uval3 = zeros( length(tval3), 1 );
+% % for i = 1 : length(tval3)
+% %     tt = tval3(i);
+% %     xx = xval3(i);
+% %     uval3(i) = double( subs(out.u{3,1}, [t;x{3}], [tt;xx]) );
+% % end
+% 
+% uval1(uval1>1) = 1;
+% uval2(uval2>1) = 1;
+% uval3(uval3>1) = 1;
+% 
+% subplot(1,2,1);
+% plot([tval1;tval3;tval2],[uval1(:,1);uval3(:,1);uval2(:,1)]);
+% subplot(1,2,2);
+% plot([tval1;tval3;tval2],[uval1(:,2);uval3(:,1)*nan;uval2(:,2)]*3);
 
 
 function [value,isterminal,direction] = Evt1(~,x)

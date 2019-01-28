@@ -99,6 +99,7 @@ t_hist = 0;
 x_hist = [ x0{ seq(1) }; 0 ].';
 u_hist = 0;
 pval = 0;
+total_time = 0;
 for i  = 1 : length( seq )
     cmode = seq(i);
     xvar = x{ cmode };
@@ -121,6 +122,7 @@ for i  = 1 : length( seq )
     Tleft = T - t_hist(end);
     [out] = OCPDualSolver( t, xvar, uvar, Tleft*f{cmode}, Tleft*g{cmode}, cx0, chX, chXT, ch, cH, d, options );
     pval = pval + Tleft * out.pval;
+    total_time = total_time + out.time;
     
     % Integrate forward
     controller = out.u{1};
@@ -142,44 +144,50 @@ end
 integrand = x_hist(:,1).^2 + x_hist(:,2).^2 + 20 * u_hist(:).^2;
 cost = sum( integrand(1:end-1) .* diff(t_hist) );
 
-disp(['LMI ' int2str(d) ' lower bound = ' num2str(pval)]);
+% disp(['LMI ' int2str(d) ' lower bound = ' num2str(pval)]);
 
-%% Plot
-xs0 = x0{2};
-figure;
-hold on;
-box on;
+disp(['total time = ', num2str(total_time)]);
+disp(['pval = ', num2str(pval)]);
+disp(['cost = ', num2str(cost)]);
 
-% Domain
-th = 0:0.01:2*pi;
-circx = sqrt(r2) * cos(th);
-circy = sqrt(r2) * sin(th);
-plot(circx, circy, 'k');
+save(['Rebuttal_DI_LQR_d', num2str(d),'_T5']);
 
-% Integrate forward trajectory
-% controller = [ out.u{1}; out.u{2} ];
-% J = @(xx, uu) xx'*xx + 20 * uu^2;
-% [ tval, xval ] = ode45(@(tt,xx) T * Hybrid_DIEq( tt, xx, controller, J, [t;x{1}] ), ...
-%                        [0:0.01:1], [xs0; 0] );
-h_traj = plot(x_hist(:,1), x_hist(:,2),'LineWidth',2);
-
-plot(x0{2}(1),x0{2}(2),'Marker','o','MarkerEdgeColor',[0 0.4470 0.7410]);
-plot(0,0,'Marker','x','MarkerEdgeColor',[0 0.4470 0.7410]);
-xlim([-1,2]);
-ylim([-1,1]);
-set(gca,'XTick',[-1,2]);
-set(gca,'YTick',[-1,1]);
-set(gca, 'FontSize', 20);
-xlabel('$x_1$','Interpreter','LaTex','FontSize',30);
-ylabel('$x_2$','Interpreter','LaTex','FontSize',30);
-box on;
-
-% Control
-figure;
-hold on;
-plot(t_hist, u_hist,'Linewidth',2);
-
-% xlim([0,T]);
+% %% Plot
+% xs0 = x0{2};
+% figure;
+% hold on;
+% box on;
+% 
+% % Domain
+% th = 0:0.01:2*pi;
+% circx = sqrt(r2) * cos(th);
+% circy = sqrt(r2) * sin(th);
+% plot(circx, circy, 'k');
+% 
+% % Integrate forward trajectory
+% % controller = [ out.u{1}; out.u{2} ];
+% % J = @(xx, uu) xx'*xx + 20 * uu^2;
+% % [ tval, xval ] = ode45(@(tt,xx) T * Hybrid_DIEq( tt, xx, controller, J, [t;x{1}] ), ...
+% %                        [0:0.01:1], [xs0; 0] );
+% h_traj = plot(x_hist(:,1), x_hist(:,2),'LineWidth',2);
+% 
+% plot(x0{2}(1),x0{2}(2),'Marker','o','MarkerEdgeColor',[0 0.4470 0.7410]);
+% plot(0,0,'Marker','x','MarkerEdgeColor',[0 0.4470 0.7410]);
+% xlim([-1,2]);
+% ylim([-1,1]);
+% set(gca,'XTick',[-1,2]);
+% set(gca,'YTick',[-1,1]);
+% set(gca, 'FontSize', 20);
+% xlabel('$x_1$','Interpreter','LaTex','FontSize',30);
+% ylabel('$x_2$','Interpreter','LaTex','FontSize',30);
+% box on;
+% 
+% % Control
+% figure;
+% hold on;
+% plot(t_hist, u_hist,'Linewidth',2);
+% 
+% % xlim([0,T]);
 
 function [dydt] = DI_dyn( tval, y, controller, J, var )
     xval = y( 1:2 );
