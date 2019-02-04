@@ -14,8 +14,8 @@
 % 
 
 clear;
-T = 15;         % time horizon
-d = 6;          % degree of relaxation
+T = 5;         % time horizon
+d = 12;          % degree of relaxation
 nmodes = 2;     % number of modes
 r2 = 0.3;       % r^2, where r is the radius of the domain of mode 1
 
@@ -39,8 +39,8 @@ x0{2} = [ 1; 1 ];
 % Dynamics
 x{1} = msspoly( 'x', 2 );
 u{1} = msspoly( 'u', 1 );
-f{1} = [ x{1}(2); 0 ];
-g{1} = [ 0; 1 ];
+f{1} = T * [ x{1}(2); 0 ];
+g{1} = T * [ 0; 1 ];
 
 x{2} = x{1};
 u{2} = u{1};
@@ -72,85 +72,22 @@ H{2} = 0;
 
 % Options
 options.MinimumTime = 0;
-options.withInputs = 1;
+options.withInputs = 0;
 options.svd_eps = 1e4;
 
-% sequence
-seq = [ 2; 1 ];
-
-% %% Plot
-% xs0 = x0{2};
-% figure;
-% hold on;
-% box on;
-% 
-% % Domain
-% th = 0:0.01:2*pi;
-% circx = sqrt(r2) * cos(th);
-% circy = sqrt(r2) * sin(th);
-% plot(circx, circy, 'k');
-% 
-% xlim([-1,2]);
-% ylim([-1,1]);
-
-
-%% Solve & save
-t_hist = 0;
-x_hist = [ x0{ seq(1) }; 0 ].';
-u_hist = 0;
-pval = 0;
-total_time = 0;
-for i  = 1 : length( seq )
-    cmode = seq(i);
-    xvar = x{ cmode };
-    uvar = u{ cmode };
-    if i == 1
-        cx0 = x0{ cmode };
-    end
-    chX = hX{ cmode };
-    if i == length( seq )
-        chXT = hXT{ cmode };
-        cH = H{ cmode };
-        options.freeFinalTime = 0;
-    else
-        chXT = sX{ seq(i), seq(i+1) };
-        cH = msspoly( 0 );
-        options.freeFinalTime = 1;
-    end
-    ch = h{ cmode };
-    
-    Tleft = T - t_hist(end);
-    [out] = OCPDualSolver( t, xvar, uvar, Tleft*f{cmode}, Tleft*g{cmode}, cx0, chX, chXT, ch, cH, d, options );
-    pval = pval + Tleft * out.pval;
-    total_time = total_time + out.time;
-    
-    % Integrate forward
-    controller = out.u{1};
-    J = @( xx, uu ) xx'*xx + 20 * uu^2;
-    ode_options = odeset('Events',@Evt1);
-    [ tval, xval ] = ode45( @(tt,xx) Tleft * DI_dyn( tt, xx, controller, J, [t;xvar] ), ...
-                            [0:0.001:1], [cx0;x_hist(end,end)], ode_options);
-    uval = full( double( msubs( controller, [t;xvar], [tval,xval(:,1:2)].' ) ) ).';
-    
-    t_hist = [ t_hist; t_hist(end) + tval*Tleft ];
-    x_hist = [ x_hist; xval ];
-    u_hist = [ u_hist; uval ];
-    cx0 = xval(end, 1:2).';
+% Solve
+% seq = [2; 1];
+seq = {[2,1], 2};
+result = struct();
+for i = 1 : length( seq )
+    [out] = HybridOCP_Comparison(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,seq{i},d,options);
+    pval = T * out.pval;
+    result( i ).pval = pval;
+    result( i ).time = out.time;
+%     disp(['LMI ' int2str(d) ' lower bound = ' num2str(pval)]);
 end
 
-integrand = x_hist(:,1).^2 + x_hist(:,2).^2 + 20 * u_hist(:).^2;
-cost = sum( integrand(1:end-1) .* diff(t_hist) );
-
-% [out] = HybridOCPDualSolver(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,d,options);
-% pval = T * out.pval;
-
-% disp(['LMI ' int2str(d) ' lower bound = ' num2str(pval)]);
-
-disp(['total time = ', num2str(total_time)]);
-disp(['pval = ', num2str(pval)]);
-disp(['cost = ', num2str(cost)]);
-
-save(['Rebuttal_DI_LQR_d', num2str(d),'_T15']);
+save(['Rebuttal_DI_LQR_d',num2str(d),'_T',num2str(T)], 'result');
 
 % %% Plot
 % xs0 = x0{2};
@@ -165,11 +102,11 @@ save(['Rebuttal_DI_LQR_d', num2str(d),'_T15']);
 % plot(circx, circy, 'k');
 % 
 % % Integrate forward trajectory
-% % controller = [ out.u{1}; out.u{2} ];
-% % J = @(xx, uu) xx'*xx + 20 * uu^2;
-% % [ tval, xval ] = ode45(@(tt,xx) T * Hybrid_DIEq( tt, xx, controller, J, [t;x{1}] ), ...
-% %                        [0:0.01:1], [xs0; 0] );
-% h_traj = plot(x_hist(:,1), x_hist(:,2),'LineWidth',2);
+% controller = [ out.u{2}; out.u{1} ];
+% J = @(xx, uu) xx'*xx + 20 * uu^2;
+% [ tval, xval ] = ode45(@(tt,xx) T * Hybrid_DIEq( tt, xx, controller, J, [t;x{1}] ), ...
+%                        [0:0.01:1], [xs0; 0] );
+% h_traj = plot(xval(:,1), xval(:,2),'LineWidth',2);
 % 
 % plot(x0{2}(1),x0{2}(2),'Marker','o','MarkerEdgeColor',[0 0.4470 0.7410]);
 % plot(0,0,'Marker','x','MarkerEdgeColor',[0 0.4470 0.7410]);
@@ -185,23 +122,14 @@ save(['Rebuttal_DI_LQR_d', num2str(d),'_T15']);
 % % Control
 % figure;
 % hold on;
-% plot(t_hist, u_hist,'Linewidth',2);
+% uval = zeros( size(tval) );
+% for i = 1 : length(tval)
+%     if (xval(i,1:2)'*xval(i,1:2) <= r2)
+%         uval(i) = double(subs(controller(1), [t;x{1}], [tval(i);xval(i,1:2)']));
+%     else
+%         uval(i) = double(subs(controller(2), [t;x{1}], [tval(i);xval(i,1:2)']));
+%     end
+% end
+% plot(tval*T, uval,'Linewidth',2);
 % 
-% % xlim([0,T]);
-
-function [dydt] = DI_dyn( tval, y, controller, J, var )
-    xval = y( 1:2 );
-    uval = double( subs( controller, var, [tval;xval] ) );
-    uval(uval>1) = 1;
-    uval(uval<-1) = -1;
-
-    dydt = [ xval(2);
-             uval;
-             J(xval,uval) ];
-end
-
-function [value,isterminal,direction] = Evt1(~,x)
-    value = x(1)^2 + x(2)^2 - 0.3;
-    isterminal = 1;
-    direction = 0;
-end
+% xlim([0,T]);

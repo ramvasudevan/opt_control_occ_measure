@@ -33,7 +33,7 @@
 
 clear;
 T = 3;          % maximum time horizon
-d = 6;          % degree of relaxation
+d = 10;          % degree of relaxation
 nmodes = 3;     % number of hybrid modes
 
 polysin = @(x) x;

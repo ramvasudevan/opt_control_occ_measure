@@ -15,7 +15,7 @@
 
 clear;
 T = 5;         % time horizon
-d = 6;          % degree of relaxation
+d = 12;          % degree of relaxation
 nmodes = 2;     % number of modes
 r2 = 0.3;       % r^2, where r is the radius of the domain of mode 1
 
@@ -50,7 +50,10 @@ g{2} = g{1};
 % Domains
 % Mode 1 
 y = x{1};
-hX{1} = r2 - y'*y;
+hX{1} = [ ...
+    r2 - y'*y;
+    (2-y(1)) * (y(1)+1);
+    1 - y(2)^2 ];
 hU{1} = 1 - u{1}^2;
 hXT{1} = hX{1};
 h{1} = 1*x{1}' * x{1} + 20 * u{1}^2;
@@ -129,7 +132,7 @@ for i  = 1 : length( seq )
     J = @( xx, uu ) xx'*xx + 20 * uu^2;
     ode_options = odeset('Events',@Evt1);
     [ tval, xval ] = ode45( @(tt,xx) Tleft * DI_dyn( tt, xx, controller, J, [t;xvar] ), ...
-                            [0:0.001:1], [cx0;x_hist(end,end)], ode_options);
+                            [0:0.0001:1], [cx0;x_hist(end,end)], ode_options);
     uval = full( double( msubs( controller, [t;xvar], [tval,xval(:,1:2)].' ) ) ).';
     
     t_hist = [ t_hist; t_hist(end) + tval*Tleft ];

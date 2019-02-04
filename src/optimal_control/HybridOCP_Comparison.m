@@ -93,156 +93,130 @@ if isempty(R)
     end
 end
 
-%% Iterate through sequence of transitions
-out = struct;
-out( length(seq) ).u = [];
-out( length(seq) ).sol = [];
-out( length(seq) ).pval = [];
+nseq = length(seq);
 
-for i = 1 : length( seq )
-    if (i == 1)
-        Mu0_basis = monomials( [t; x{ seq(i) }], 0:d );
-        Mu0_moments = double( subs( Mu0_basis, [ t; x{ seq(i) } ], [ 0; x0{ seq(i) } ] ) );
-        Rst_func = x{ seq(i) };
-    else
-        Rst_func = R{ seq(i-1), seq( i ) };
-    end
+%% Iterate through sequence of transitions
+prog = spotsosprog;
+prog = prog.withIndeterminate( t );
+
+for i = 1 : nseq
+    cmode = seq(i);
+    xvar = x{cmode};
+    uvar = u{cmode};
+    prog = prog.withIndeterminate( xvar );
+    prog = prog.withIndeterminate( uvar );
     
-    if (i == length( seq ))
-        [ out2 ] = OCP_singlemode( seq(i), Mu0_basis, Mu0_moments, Rst_func, hXT{ seq(i) }, H{ seq(i) } );
-    else
-        [ out2 ] = OCP_singlemode( seq(i), Mu0_basis, Mu0_moments, Rst_func, sX{ seq(i), seq(i+1) }, msspoly( 0 ) );
-    end
-    
-    Mu0_basis = out2.muT_basis;
-    Mu0_moments = double( out2.y_muT );
-    out(i).u = out2.u;
-    out(i).sol = out2.sol;
-    out(i).pval = out2.pval;
+    vmonom = monomials( [ t; xvar ], 0:d );
+    [ prog, v{ i }, ~ ] = prog.newFreePoly( vmonom );
 end
 
-
-%% ================== Solver for each non-hybrid trajectory ==============
-    function [ out2 ] = OCP_singlemode( current_mode, mu0_basis, mu0_moments, rst_func, hX_terminal, H_terminal )
-        xvar = x{ current_mode };
-        uvar = u{ current_mode };
+for i = 1 : nseq
+    cmode = seq(i);
+    xvar = x{cmode};
+    uvar = u{cmode};
+    
+    dvdt = diff( v{i}, t );
+    dvdx = diff( v{i}, xvar );
+    Lfv = dvdt + dvdx * f{ cmode };
+    Lgv = dvdx * g{ cmode };
+    Lv = Lfv + Lgv * uvar;
         
-        % setup spotless program
-        prog = spotsosprog;
-        prog = prog.withIndeterminate( t );
-        prog = prog.withIndeterminate( xvar );
-        prog = prog.withIndeterminate( uvar );
-        
-        % create decision variable: v
-        vmonom = monomials( [t; xvar], 0:d );
-        [ prog, v ] = prog.newFreePoly( vmonom );
-        
-        % create auxiliary variables
-        dvdt = diff( v, t );
-        dvdx = diff( v, xvar );
-        Lfv = dvdt + dvdx * f{ current_mode };
-        Lgv = dvdx * g{ current_mode };
-        Lv = Lfv + Lgv * uvar;
-        
-        % constraints
-        % 1. Lv + h >= 0                    Dual: mu
-        prog = sosOnK( prog, Lv + h{current_mode}, ...
-              	[ t; xvar; uvar ], [ hT; hX{current_mode}; hU{current_mode} ], d );
-        mu_idx = size( prog.sosExpr, 1 );
-        % 2. v(t,x) <= H(x) on X_terminal   Dual: muT
-        prog = sosOnK( prog, H_terminal - v, ...
-                [ t; xvar ], [ hT; hX_terminal ], d );
-        muT_idx = size( prog.sosExpr, 1 );
-        
-        % objective function
-        obj = Ly( subs( v, xvar, rst_func ), mu0_basis, mu0_moments );
-        
-        
-        % set options
-        spot_options = spot_sdp_default_options();
-        spot_options.verbose = 1;
-
-        if isfield(options, 'solver_options')
-            spot_options.solver_options = options.solver_options;
+    % constraints and cost function
+    % Lv_i + h_i >= 0                   Dual: mu
+    prog = sosOnK( prog, Lv + h{ cmode }, ...
+                   [ t; xvar; uvar ], [ hT; hX{ cmode }; hU{ cmode } ], d );
+    mu_idx(i) = size( prog.sosExpr, 1 );
+    
+    % v(T,x) <= H_i(x)                  Dual: muT
+    if ( i == nseq )
+        if options.freeFinalTime
+            prog = sosOnK( prog, H{ cmode } - v{ i }, [ t; xvar ], [ hT; hXT{ cmode } ], d );
+        else
+            vT = subs( v{i}, t, T );
+            prog = sosOnK( prog, H{ cmode } - vT, xvar, hXT{ cmode }, d );
         end
-        
-        %% solve!
-        [sol, y, dual_basis] = prog.minimize( -obj, @spot_mosek, spot_options );
-        
-        %% generate output
-        out2.sol = sol;
-        out2.pval = double(sol.eval(obj));
-        
-        %% control synthesis
-        if ~options.withInputs
-            out2.u = [];
-            return;
-        end
-        
-        urb = monomials( [ t; xvar ], 0 : d/2 );
-        % moments of mu
-        mu_basis = dual_basis{ mu_idx };
-        y_mu = sol.dualEval( y{ mu_idx } );
+    end
+    
+    % v_i(t,x) <= v_j (t,R(x))          Dual: muS
+    if ( i < nseq )
+        nextmode = seq(i+1);
+        vj_helper = subs( v{ i+1 }, x{ nextmode }, R{ cmode, nextmode } ); 
+        prog = sosOnK( prog, vj_helper - v{ i }, [ t; xvar ] , [ hT; sX{ cmode, nextmode } ], d );
+    end
+    % objective function
+    if (i == 1)
+        obj = subs( v{i}, [t;xvar], [0;x0{cmode}] );
+    end
+    
+end
 
-        % moment matrix of mu
-        mypoly = mss_s2v( urb * urb' );
-        coeff_mu = DecompMatch( mypoly, mu_basis );
-        moment_mat = double( mss_v2s( coeff_mu * y_mu ) );
+% set options
+spot_options = spot_sdp_default_options();
+spot_options.verbose = 1;
 
-        [U,S,V] = svd(moment_mat);
-        iS1 = S;
+if isfield(options, 'solver_options')
+    spot_options.solver_options = options.solver_options;
+end
 
-        startExp = 1e-10;
-        while norm(pinv(iS1)) / norm(S) > svd_eps
-            iS1(iS1 < startExp) = 0;
-            startExp = startExp * 10;
-        end
+%% Solve
+tic;
+[sol, y, dual_basis] = prog.minimize( -obj, @spot_mosek, spot_options );
+out.time = toc;
 
-        fprintf('norm of moment matrix %0.2f\n', norm(S));
-        fprintf('norm of inverse moment matrix %0.2f\n', norm(pinv(iS1)));
+out.pval = double(sol.eval(obj));
+out.sol = sol;
+% for i = 1 : length(seq)
+%     out.v{ i } = v{ i };
+% end
 
-        iMyt = V*pinv(iS1)*U';
+%% Control Synthesis
+if ~options.withInputs
+    out.u = [];
+    return;
+end
 
-        % yp and yn
-        for jr = 1 : length( uvar )
-            fprintf('Processing mode %1.0f, input #%1.0f ...\n', current_mode, jr );
-            mypoly = uvar( jr ) * urb;
-            coeff = DecompMatch( mypoly, mu_basis );
-            y_u = sol.dualEval( coeff * y_mu );
+uout = cell( nseq, max_m );
+u_real_basis = cell( nseq, 1 );
+for i = 1 : nseq
+    cmode = seq(i);
+    urb = monomials( [ t; x{ cmode } ], 0 : d/2 );
+    u_real_basis{ i } = urb;
+    % moments of mu
+    mu_basis = dual_basis{ mu_idx(i) };
+    y_mu = sol.dualEval( y{ mu_idx(i) } );
+    
+    % moment matrix of mu
+    mypoly = mss_s2v( urb * urb' );
+    coeff_mu = DecompMatch( mypoly, mu_basis );
+    moment_mat = double( mss_v2s( coeff_mu * y_mu ) );
+    
+    [U,S,V] = svd(moment_mat);
+    iS1 = S;
 
-            u_coeff = iMyt * y_u;
-            uout{ jr } = u_coeff' * urb;
-        end
-        
-        out2.u = uout;
-        
-        %% terminal measure
-        muT_basis = dual_basis{ muT_idx };
-        y_muT = sol.dualEval( y{ muT_idx } );
-        
-        out2.muT_basis = muT_basis;
-        out2.y_muT = y_muT;
+    startExp = 1e-10;
+    while norm(pinv(iS1)) / norm(S) > svd_eps
+        iS1(iS1 < startExp) = 0;
+        startExp = startExp * 10;
     end
 
-    function [ result ] = Ly( p, basis, moments )
-        if numel( p ) > 1
-            error( 'Please pass in one polynomial at a time.' );
-        end
-        [ var, pow, M ] = decomp( p );
-        [ basis_var, basis_pow, basis_M ] = decomp( basis );
-        basis_pow = basis_M * basis_pow;
-        idx1 = match( var, basis_var );     % position of basis_var in var
+    fprintf('norm of moment matrix %0.2f\n', norm(S));
+    fprintf('norm of inverse moment matrix %0.2f\n', norm(pinv(iS1)));
+
+    iMyt = V*pinv(iS1)*U';
+    
+    % yp and yn
+    for j = 1 : length( u{ cmode } )
+        fprintf('Processing mode %1.0f, input #%1.0f ...\n', i, j );
+        mypoly = u{ i }( j ) * urb;
+        coeff = DecompMatch( mypoly, mu_basis );
+        y_u = sol.dualEval( coeff * y_mu );
         
-%         p_list = recomp( var( idx1 ), pow( :, idx1 ), speye( size( pow, 1 ) ) );
-%         idx2 = match( basis, p_list );
+        u_coeff = iMyt * y_u;
+        uout{ i, j } = u_coeff' * urb;
         
-        [ ~, idx2 ] = ismember( pow( :, idx1 ), basis_pow, 'rows' );   % position of pow in basis_pow
-        moments = [ 0; moments ];
-        M = M .* moments( idx2+1 ).';
-        
-        idx_complement = setdiff( 1:length(var), idx1 );
-        pow = pow( :, idx_complement );
-        var = var( idx_complement );
-        result = recomp( var, pow, M );
     end
+end
+
+out.u = uout;
+
 end
