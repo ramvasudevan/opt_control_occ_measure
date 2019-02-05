@@ -169,7 +169,7 @@ seq = { ...
     };
 result = struct();
 for i = 1 : length( seq )
-    [out] = HybridOCPDualSolver(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,d,options);
+    [out] = HybridOCP_Comparison(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,seq{i},d,options);
     result( i ).time = out.time;
     if (out.sol.status == spotsolstatus.STATUS_PRIMAL_AND_DUAL_FEASIBLE)
         result( i ).pval = T * out.pval;
