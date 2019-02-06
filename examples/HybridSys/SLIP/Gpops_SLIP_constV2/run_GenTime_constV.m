@@ -1,18 +1,24 @@
-clear;
-
-totaltime = [];
-mincost = inf;
-for nphases = 4 : 12
-    run_SLIP_constV2_gpops_new_2;
-    totaltime = [ totaltime; trialtime ];
-    if ~isempty( output.result.objective )
-        if mincost > output.result.objective
-            mincost = output.result.objective;
-        end
-    end
+if exist('Rebuttal_GPOPS_constV.mat','file')
+    load('Rebuttal_GPOPS_constV.mat');
 end
 
-disp(['total time = ', num2str(sum(totaltime))]);
-disp(['min cost = ', num2str(mincost)]);
+if ~exist('info', 'var')
+    cnt = 1;
+    info = struct();
+else
+    cnt = length(info)+1;
+end
 
-save('Rebuttal_GPOPS_constV');
+for nphases = 12 : 12
+    clc;
+    disp(['SLIP, ConstV, nphases = ', num2str(nphases)]);
+    run_SLIP_constV2_gpops_new_2;
+    info(cnt).nphases = nphases;
+    info(cnt).time = trialtime;
+    info(cnt).cost = output.result.objective;
+    cnt = cnt + 1;
+    
+    save('Rebuttal_GPOPS_constV','info');
+end
+
+save('Rebuttal_GPOPS_constV', 'info');

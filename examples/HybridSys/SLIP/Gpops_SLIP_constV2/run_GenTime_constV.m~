@@ -1,0 +1,15 @@
+if ~exist('info', 'var')
+    cnt = 1;
+    info = struct();
+else
+    cnt = length(info)+1;
+end
+
+for nphases = 4 : 7
+    run_SLIP_constV2_gpops_new_2;
+    info(cnt).nphases = nphases;
+    info(cnt).time = trialtime;
+    info(cnt).cost = output.result.objective;
+end
+
+save('Rebuttal_GPOPS_constV');

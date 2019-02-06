@@ -52,7 +52,7 @@ params.domain{3} = ...
 %-------------------------- Parameters for OCP ---------------------------%
 %-------------------------------------------------------------------------%
 T = 2.5;            % time horizon
-d = 4;              % degree of relaxation
+d = 6;              % degree of relaxation
 nmodes = 3;         % number of modes
 
 % Solver options
@@ -153,33 +153,40 @@ hXT{3} = hX{3};
 %-------------------------------------------------------------------------%
 %-------------------------------- Solve ----------------------------------%
 %-------------------------------------------------------------------------%
-options.withInputs = 0;
+% options.withInputs = 0;
+% seq = { ...
+%     [3 1]
+%     [3 1 2]
+%     [3 1 2 3]
+%     [3 1 2 3 1]
+%     [3 1 2 3 1 2]
+%     [3 1 2 3 1 2 3]
+%     [3 1 2 3 1 2 3 1]
+%     [3 1 2 3 1 2 3 1 2]
+%     [3 1 2 3 1 2 3 1 2 3]
+%     [3 1 2 3 1 2 3 1 2 3 1]
+%     [3 1 2 3 1 2 3 1 2 3 1 2]
+%     };
+
+options.withInputs = 1;
 seq = { ...
-    [3 1]
-    [3 1 2]
     [3 1 2 3]
-    [3 1 2 3 1]
-    [3 1 2 3 1 2]
-    [3 1 2 3 1 2 3]
-    [3 1 2 3 1 2 3 1]
-    [3 1 2 3 1 2 3 1 2]
-    [3 1 2 3 1 2 3 1 2 3]
-    [3 1 2 3 1 2 3 1 2 3 1]
-    [3 1 2 3 1 2 3 1 2 3 1 2]
     };
+
 result = struct();
 for i = 1 : length( seq )
-    [out] = HybridOCPDualSolver(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,d,options);
+    [out] = HybridOCP_Comparison(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,seq{i},d,options);
     result( i ).time = out.time;
     if (out.sol.status == spotsolstatus.STATUS_PRIMAL_AND_DUAL_FEASIBLE)
-        result( i ).pval = T * out.pval;
+        result( i ).pval = out.pval;
     else
         result( i ).pval = nan;
     end
 end
 
+save(['Rebuttal_SLIP_high_d',num2str(d),'_T',num2str(T),'minimum.mat']);
 
-save(['Rebuttal_SLIP_highold_d',num2str(d),'_T',num2str(T)], 'result');
+% save(['Rebuttal_SLIP_high_d',num2str(d),'_T',num2str(T),'.mat'], 'result');
 
 %-------------------------------------------------------------------------%
 %-------------------------------- PLot -----------------------------------%

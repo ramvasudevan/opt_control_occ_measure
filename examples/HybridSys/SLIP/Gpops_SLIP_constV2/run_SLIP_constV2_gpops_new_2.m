@@ -54,7 +54,7 @@ params.domain{3} = ...
 %-------------------------------------------------------------------------%
 %--------------- Provide All Physical Data for Problem -------------------%
 %-------------------------------------------------------------------------%
-T = 12;
+T = 3;
 % nphases = 2;
 x0 = [ -1, 0.3, 0.2, 0 ];
 offset = 1;             % Initial mode: mode 3 = 1, mode 2 = 0, mode 1 = 2
@@ -161,7 +161,7 @@ bounds.eventgroup(iphase).upper = 1000;
 %----------Provide Mesh Refinement Method and Initial Mesh ---------------%
 %-------------------------------------------------------------------------%
 mesh.method          = 'hp-LiuRao-Legendre';
-% mesh.maxiterations   = 45;
+mesh.maxiterations   = 45;
 mesh.tolerance       = 1e-7;
 for i = 1 : nphases
     mesh.phase(i).colpoints = 10 * ones(1,100);

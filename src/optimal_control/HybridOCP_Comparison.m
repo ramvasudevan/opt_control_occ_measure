@@ -207,7 +207,7 @@ for i = 1 : nseq
     % yp and yn
     for j = 1 : length( u{ cmode } )
         fprintf('Processing mode %1.0f, input #%1.0f ...\n', i, j );
-        mypoly = u{ i }( j ) * urb;
+        mypoly = u{ cmode }( j ) * urb;
         coeff = DecompMatch( mypoly, mu_basis );
         y_u = sol.dualEval( coeff * y_mu );
         

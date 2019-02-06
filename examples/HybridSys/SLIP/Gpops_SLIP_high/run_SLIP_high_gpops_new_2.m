@@ -165,9 +165,9 @@ bounds.eventgroup(iphase).upper = 1000;
 %-------------------------------------------------------------------------%
 %----------Provide Mesh Refinement Method and Initial Mesh ---------------%
 %-------------------------------------------------------------------------%
-% mesh.method          = 'hp-LiuRao-Legendre';
-% mesh.maxiterations   = 45;
-mesh.tolerance       = 1e-5;
+mesh.method          = 'hp-LiuRao-Legendre';
+mesh.maxiterations   = 45;
+mesh.tolerance       = 1e-7;
 for i = 1 : nphases
     mesh.phase(i).colpoints = 10 * ones(1,100);
     mesh.phase(i).fraction = 0.01 * ones(1,100);
@@ -187,7 +187,7 @@ setup.auxdata                        = auxdata;
 setup.mesh                           = mesh;
 setup.nlp.solver                     = 'ipopt';
 setup.nlp.ipoptoptions.maxiterations = 200;
-% setup.nlp.ipoptoptions.linear_solver = 'ma57';
+setup.nlp.ipoptoptions.linear_solver = 'ma57';
 setup.nlp.ipoptoptions.tolerance     = 1e-10;
 % setup.derivatives.supplier           = 'adigator';
 setup.derivatives.derivativelevel    = 'second';

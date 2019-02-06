@@ -13,3 +13,5 @@ addpath('Gpops_SLIP_high');
 addpath('Gpops_SLIP_constV1');
 addpath('Gpops_SLIP_constV2');
 addpath('Gpops_SLIP_constV3');
+
+addpath('Rebuttal');

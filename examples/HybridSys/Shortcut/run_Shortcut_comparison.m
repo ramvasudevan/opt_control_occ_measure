@@ -130,11 +130,12 @@ hXT{2} = [ - (y(1) - 0.8)^2;
 
 % ============================== Options =================================
 options.freeFinalTime = 1;
-options.withInputs = 0;
+options.withInputs = 1;
 options.svd_eps = 1e4;
 
 % Solve
-seq = {[1,3,2], [1,2]};
+% seq = {[1,3,2], [1,2]};
+seq = {[1,3,2]};
 result = struct();
 for i = 1 : length( seq )
     [out] = HybridOCP_Comparison(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,seq{i},d,options);
@@ -142,8 +143,6 @@ for i = 1 : length( seq )
     result( i ).pval = pval;
     result( i ).time = out.time;
 end
-
-save(['Rebuttal_shortcut_d',num2str(d),'_T',num2str(T)], 'result');
 
 %% Plot
 if ~options.withInputs
@@ -161,12 +160,12 @@ h_traj1 = plot3( xval1(:,1), xval1(:,2), xval1(:,1)*0, 'LineWidth', 4 );
 
 % In mode 3
 ode_options = odeset('Events', @EventFcn_3);
-[ tval3, xval3 ] = ode45( @(tt,xx) -2*T*double(subs(out.u{3,1},[t;x{3}],[tt;xx])), ...
+[ tval3, xval3 ] = ode45( @(tt,xx) -2*T*double(subs(out.u{2,1},[t;x{3}],[tt;xx])), ...
                           [tval1(end):0.0001:1], 1, ode_options );
 h_traj3 = plot3( xval3*0+1, xval3, xval3*0+1, 'LineWidth', 4 );
 
 % In mode 2
-controller2 = @(tt,xx) [ double(subs(out.u{2,1},[t;x{1}],[tt;xx])); double(subs(out.u{2,2},[t;x{2}],[tt;xx])) ];
+controller2 = @(tt,xx) [ double(subs(out.u{3,1},[t;x{1}],[tt;xx])); double(subs(out.u{3,2},[t;x{2}],[tt;xx])) ];
 ode_options = odeset('Events', @EventFcn_2);
 [ tval2, xval2 ] = ode45( @(tt,xx) T*DubinsEq( tt, xx, controller2 ), ...
                           [tval3(end):0.0001:1], [ 0.6; -0.8; 0 ], ode_options );
@@ -186,14 +185,14 @@ uval2 = zeros( length(tval2), 1 );
 for i = 1 : length(tval2)
     tt = tval2(i);
     xx = xval2(i,:)';
-    uval2(i,1) = double( subs(out.u{2,1}, [t;x{2}], [tt;xx]) );
-    uval2(i,2) = double( subs(out.u{2,2}, [t;x{2}], [tt;xx]) );
+    uval2(i,1) = double( subs(out.u{3,1}, [t;x{2}], [tt;xx]) );
+    uval2(i,2) = double( subs(out.u{3,2}, [t;x{2}], [tt;xx]) );
 end
 uval3 = zeros( length(tval3), 1 );
 for i = 1 : length(tval3)
     tt = tval3(i);
     xx = xval3(i);
-    uval3(i) = double( subs(out.u{3,1}, [t;x{3}], [tt;xx]) );
+    uval3(i) = double( subs(out.u{2,1}, [t;x{3}], [tt;xx]) );
 end
 
 uval1(uval1>1) = 1;
@@ -204,3 +203,6 @@ subplot(1,2,1);
 plot([tval1;tval3;tval2],[uval1(:,1);uval3(:,1);uval2(:,1)]);
 subplot(1,2,2);
 plot([tval1;tval3;tval2],[uval1(:,2);uval3(:,1)*nan;uval2(:,2)]*3);
+
+
+save(['Rebuttal_shortcut_simulation_d',num2str(d),'_T',num2str(T),'.mat']);

@@ -14,7 +14,7 @@
 % 
 
 clear;
-T = 5;         % time horizon
+T = 15;         % time horizon
 d = 12;          % degree of relaxation
 nmodes = 2;     % number of modes
 r2 = 0.3;       % r^2, where r is the radius of the domain of mode 1
@@ -72,12 +72,13 @@ H{2} = 0;
 
 % Options
 options.MinimumTime = 0;
-options.withInputs = 0;
+options.withInputs = 1;
 options.svd_eps = 1e4;
 
 % Solve
-% seq = [2; 1];
-seq = {[2,1], 2};
+seq = {[2; 1]};
+% seq = {2};
+% seq = {[2,1], 2};
 result = struct();
 for i = 1 : length( seq )
     [out] = HybridOCP_Comparison(t,x,u,f,g,hX,hU,sX,R,x0,hXT,h,H,seq{i},d,options);
@@ -87,49 +88,58 @@ for i = 1 : length( seq )
 %     disp(['LMI ' int2str(d) ' lower bound = ' num2str(pval)]);
 end
 
-save(['Rebuttal_DI_LQR_d',num2str(d),'_T',num2str(T)], 'result');
+% save(['Rebuttal_DI_LQR_d',num2str(d),'_T',num2str(T)], 'result');
+save(['Rebuttal_DI_LQR_simulation_d',num2str(d),'_T',num2str(T),'.mat']);
 
-% %% Plot
-% xs0 = x0{2};
-% figure;
-% hold on;
-% box on;
-% 
-% % Domain
-% th = 0:0.01:2*pi;
-% circx = sqrt(r2) * cos(th);
-% circy = sqrt(r2) * sin(th);
-% plot(circx, circy, 'k');
-% 
-% % Integrate forward trajectory
-% controller = [ out.u{2}; out.u{1} ];
-% J = @(xx, uu) xx'*xx + 20 * uu^2;
-% [ tval, xval ] = ode45(@(tt,xx) T * Hybrid_DIEq( tt, xx, controller, J, [t;x{1}] ), ...
-%                        [0:0.01:1], [xs0; 0] );
-% h_traj = plot(xval(:,1), xval(:,2),'LineWidth',2);
-% 
-% plot(x0{2}(1),x0{2}(2),'Marker','o','MarkerEdgeColor',[0 0.4470 0.7410]);
-% plot(0,0,'Marker','x','MarkerEdgeColor',[0 0.4470 0.7410]);
-% xlim([-1,2]);
-% ylim([-1,1]);
-% set(gca,'XTick',[-1,2]);
-% set(gca,'YTick',[-1,1]);
-% set(gca, 'FontSize', 20);
-% xlabel('$x_1$','Interpreter','LaTex','FontSize',30);
-% ylabel('$x_2$','Interpreter','LaTex','FontSize',30);
-% box on;
-% 
-% % Control
-% figure;
-% hold on;
-% uval = zeros( size(tval) );
-% for i = 1 : length(tval)
-%     if (xval(i,1:2)'*xval(i,1:2) <= r2)
-%         uval(i) = double(subs(controller(1), [t;x{1}], [tval(i);xval(i,1:2)']));
-%     else
-%         uval(i) = double(subs(controller(2), [t;x{1}], [tval(i);xval(i,1:2)']));
-%     end
-% end
-% plot(tval*T, uval,'Linewidth',2);
-% 
-% xlim([0,T]);
+%% Plot
+xs0 = x0{2};
+figure;
+hold on;
+box on;
+
+% Domain
+th = 0:0.01:2*pi;
+circx = sqrt(r2) * cos(th);
+circy = sqrt(r2) * sin(th);
+plot(circx, circy, 'k');
+
+% Integrate forward trajectory
+controller = [ out.u{2}; out.u{1} ];
+J = @(xx, uu) xx'*xx + 20 * uu^2;
+[ tval, xval ] = ode45(@(tt,xx) T * Hybrid_DIEq( tt, xx, controller, J, [t;x{1}] ), ...
+                       [0:0.001:1], [xs0; 0] );
+h_traj = plot(xval(:,1), xval(:,2),'LineWidth',2);
+
+plot(x0{2}(1),x0{2}(2),'Marker','o','MarkerEdgeColor',[0 0.4470 0.7410]);
+plot(0,0,'Marker','x','MarkerEdgeColor',[0 0.4470 0.7410]);
+xlim([-1,2]);
+ylim([-1,1]);
+set(gca,'XTick',[-1,2]);
+set(gca,'YTick',[-1,1]);
+set(gca, 'FontSize', 20);
+xlabel('$x_1$','Interpreter','LaTex','FontSize',30);
+ylabel('$x_2$','Interpreter','LaTex','FontSize',30);
+box on;
+
+% Control
+figure;
+hold on;
+uval = zeros( size(tval) );
+for i = 1 : length(tval)
+    if (xval(i,1:2)'*xval(i,1:2) <= r2)
+        uval(i) = double(subs(controller(1), [t;x{1}], [tval(i);xval(i,1:2)']));
+    else
+        uval(i) = double(subs(controller(2), [t;x{1}], [tval(i);xval(i,1:2)']));
+    end
+end
+plot(tval*T, uval,'Linewidth',2);
+
+xlim([0,T]);
+
+t_hist = tval * T;
+x_hist = xval;
+u_hist = uval;
+integrand = x_hist(:,1).^2 + x_hist(:,2).^2 + 20 * u_hist(:).^2;
+cost = sum( integrand(1:end-1) .* diff(t_hist) );
+
+disp(['cost = ', num2str(cost)]);
